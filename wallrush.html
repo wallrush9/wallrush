@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WallRush — Yo'lini To'sib Qo'y</title>
+<style>
+  :root{ 
+    --bg-deep:#080d18;
+    --board:#eef2fb;
+    --blue:#3f7dff;
+    --blue-dark:#1c4fc0;
+    --blue-glow: rgba(63,125,255,0.55);
+    --red:#ff5a52;
+    --red-dark:#a82d29;
+    --red-glow: rgba(255,90,82,0.55);
+    --gold:#ffc95c;
+    --sub:#93a5c9;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
+  html,body{
+    margin:0; padding:0; min-height:100%;
+    background:
+      radial-gradient(900px 500px at 15% -8%, rgba(63,125,255,0.20), transparent 60%),
+      radial-gradient(900px 500px at 90% 0%, rgba(255,90,82,0.16), transparent 55%),
+      radial-gradient(1400px 900px at 50% -10%, #16223f 0%, var(--bg-deep) 62%);
+    color:#eaf0fb;
+    display:flex; align-items:flex-start; justify-content:center;
+    overflow-x:hidden;
+  }
+  #app{ width:min(94vw, 420px); padding:16px 14px 30px; position:relative; z-index:1;}
+
+  @keyframes floatGlow{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+  @keyframes shine{ 0%{ background-position:-200% 0;} 100%{ background-position:200% 0;} }
+  @keyframes bgShift{ 0%,100%{ background-position:0% 50%;} 50%{ background-position:100% 50%;} }
+  @keyframes popIn{ 0%{ transform:scale(0.3); opacity:0;} 60%{ transform:scale(1.15);} 100%{ transform:scale(1); opacity:1;} }
+  @keyframes pulseRing{ 0%{ box-shadow:0 0 0 0 rgba(63,125,255,0.55);} 70%{ box-shadow:0 0 0 10px rgba(63,125,255,0);} 100%{ box-shadow:0 0 0 0 rgba(63,125,255,0);} }
+  @keyframes pulseRingRed{ 0%{ box-shadow:0 0 0 0 rgba(255,90,82,0.55);} 70%{ box-shadow:0 0 0 10px rgba(255,90,82,0);} 100%{ box-shadow:0 0 0 0 rgba(255,90,82,0);} }
+  @keyframes highlightPulse{ 0%,100%{ opacity:0.55;} 50%{ opacity:1;} }
+  @keyframes confettiFall{ 0%{ transform:translateY(-20px) rotate(0deg); opacity:1; } 100%{ transform:translateY(520px) rotate(540deg); opacity:0; } }
+  @keyframes coinPop{ 0%{ transform:scale(0.5); opacity:0;} 50%{ transform:scale(1.25);} 100%{ transform:scale(1); opacity:1;} }
+  @keyframes wiggle{ 0%,100%{ transform:rotate(-9deg);} 50%{ transform:rotate(9deg);} }
+  @keyframes bob{ 0%,100%{ transform:translateY(0) scale(1);} 50%{ transform:translateY(-4px) scale(1.06);} }
+  @keyframes spinSlow{ 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
+  @keyframes swing{ 0%,100%{ transform:rotate(-12deg);} 50%{ transform:rotate(12deg);} }
+  @keyframes flicker{ 0%,100%{ transform:scale(1) rotate(-3deg); filter:brightness(1);} 50%{ transform:scale(1.12) rotate(3deg); filter:brightness(1.3);} }
+  @keyframes badgePop{ 0%{ transform:scale(0) rotate(-25deg); opacity:0;} 70%{ transform:scale(1.15) rotate(5deg);} 100%{ transform:scale(1) rotate(0deg); opacity:1;} }
+  @keyframes hueShift{ 0%{ filter:hue-rotate(0deg) saturate(1.6);} 100%{ filter:hue-rotate(360deg) saturate(1.6);} }
+  @keyframes glowPulse{ 0%,100%{ box-shadow:0 12px 24px -8px rgba(63,125,255,0.55), inset 0 1px 0 rgba(255,255,255,0.25), 0 0 0 0 rgba(63,125,255,0.5);} 50%{ box-shadow:0 14px 30px -6px rgba(63,125,255,0.75), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 0 6px rgba(63,125,255,0.12);} }
+  @keyframes spinnerRot{ 0%{ transform:rotate(0deg);} 100%{ transform:rotate(360deg);} }
+  @keyframes dotBounce{ 0%,80%,100%{ transform:translateY(0); opacity:0.5;} 40%{ transform:translateY(-6px); opacity:1;} }
+
+  /* ---------- shared screens ---------- */
+  #menuScreen, #difficultyScreen, #shopScreen, #matchScreen, #setup4pScreen{ display:flex; flex-direction:column; align-items:center; padding-top:5vh; text-align:center; position:relative; }
+  #difficultyScreen, #shopScreen, #matchScreen, #setup4pScreen{ display:none; }
+  .logo{
+    width:74px; height:74px; border-radius:22px;
+    background: linear-gradient(150deg, var(--blue), #8a4fff 55%, var(--red));
+    display:flex; align-items:center; justify-content:center;
+    font-size:34px; margin-bottom:12px;
+    box-shadow: 0 16px 34px -8px rgba(63,125,255,0.55), inset 0 2px 0 rgba(255,255,255,0.35);
+    animation: floatGlow 3.2s ease-in-out infinite;
+  }
+  .logo svg{ width:36px; height:36px; }
+  h1.title{ font-size:25px; margin:0 0 4px; font-weight:900; letter-spacing:0.3px; }
+  h1.title span{ background:linear-gradient(90deg,var(--blue),#8a4fff,var(--red)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline{ color:var(--sub); font-size:12.5px; margin-bottom:14px; }
+
+  .status-row{ display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+  .coin-pill, .level-pill{
+    display:inline-flex; align-items:center; gap:6px;
+    font-weight:900; font-size:12.5px;
+    padding:6px 12px 6px 8px; border-radius:20px;
+  }
+  .coin-pill{ background: linear-gradient(160deg,#ffe6a0,#e2a92a); color:#4a2e00; box-shadow: 0 6px 14px -6px rgba(226,169,42,0.6), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .level-pill{ border:1px solid rgba(255,255,255,0.35); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  .level-pill svg{ width:18px; height:18px; margin-left:-2px; }
+  .level-pill.tier-bronze{ background: linear-gradient(160deg,#e0a374,#8a4b21); color:#fff3e6; box-shadow: 0 6px 14px -6px rgba(138,75,33,0.6), inset 0 1px 0 rgba(255,255,255,0.35); }
+  .level-pill.tier-silver{ background: linear-gradient(160deg,#eef2f8,#a3afc2); color:#1c2430; box-shadow: 0 6px 14px -6px rgba(163,175,194,0.6), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .level-pill.tier-gold{ background: linear-gradient(160deg,#ffe6a0,#e2a92a); color:#4a2e00; box-shadow: 0 6px 14px -6px rgba(226,169,42,0.6), inset 0 1px 0 rgba(255,255,255,0.5); }
+  .level-pill.tier-diamond{ background: linear-gradient(160deg,#d4f6ff,#4fc3e8); color:#04303f; box-shadow: 0 6px 14px -6px rgba(79,195,232,0.6), inset 0 1px 0 rgba(255,255,255,0.6); animation: glowPulse 2.4s ease-in-out infinite; }
+  .coin-pill svg{ width:15px; height:15px; }
+
+  .menu-btn{
+    width:100%; max-width:300px;
+    border:1px solid rgba(255,255,255,0.28);
+    cursor:pointer;
+    padding:16px 18px; margin-bottom:12px;
+    border-radius:22px; text-align:left;
+    display:flex; align-items:center; gap:13px;
+    font-family:inherit;
+    position:relative; overflow:hidden;
+    transition: transform .12s ease, filter .12s ease;
+    background-size:220% 220%;
+    animation: bgShift 6s ease-in-out infinite;
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    box-shadow: 0 10px 26px -10px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.4), inset 0 -10px 16px -12px rgba(0,0,0,0.25);
+  }
+  .menu-btn:active{ transform: scale(0.95); filter:brightness(0.94); }
+  .menu-btn::before{
+    content:''; position:absolute; top:0; left:0; right:0; height:46%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0));
+    border-radius:22px 22px 40% 40%/22px 22px 100% 100%;
+    pointer-events:none;
+  }
+  .menu-btn::after{
+    content:''; position:absolute; inset:0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.45) 45%, transparent 60%);
+    background-size: 200% 100%;
+    animation: shine 3.2s ease-in-out infinite;
+  }
+  .menu-btn .txt{ display:flex; flex-direction:column; z-index:1; }
+  .menu-btn .txt b{ font-size:15px; }
+  .menu-btn .txt small{ color:rgba(255,255,255,0.82); font-size:11.5px; }
+
+  .emoji{
+    position:relative; z-index:1;
+    width:46px; height:46px; flex:none;
+    display:flex; align-items:center; justify-content:center;
+    border-radius:16px;
+    background: linear-gradient(155deg, rgba(255,255,255,0.85), rgba(255,255,255,0.22));
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3), inset 0 1.5px 0 rgba(255,255,255,0.9), inset 0 -4px 6px rgba(0,0,0,0.12);
+    animation: badgePop .45s cubic-bezier(.3,1.7,.4,1) both;
+  }
+  .emoji::before{
+    content:''; position:absolute; inset:-3px; border-radius:19px; z-index:-1;
+    background: conic-gradient(from 0deg, #ff5a52, #ffc95c, #4be8b8, #3f7dff, #8a4fff, #ff5a52);
+    opacity:0.7; filter: blur(3px);
+    animation: spinSlow 3.5s linear infinite;
+  }
+  .emoji::after{
+    content:''; position:absolute; top:2px; left:4px; right:4px; height:38%;
+    background: linear-gradient(180deg, rgba(255,255,255,0.6), rgba(255,255,255,0));
+    border-radius:13px 13px 40% 40%/13px 13px 100% 100%;
+    pointer-events:none;
+  }
+  .emoji svg{ display:block; width:25px; height:25px; position:relative; z-index:1; }
+  .menu-btn.online .emoji{ animation-delay:0s; }
+  .menu-btn.online .emoji svg{ animation: spinSlow 5s linear infinite; }
+  .menu-btn.friend .emoji{ animation-delay:.02s; }
+  .menu-btn.friend .emoji svg{ animation: bob 2.1s ease-in-out .5s infinite; }
+  .menu-btn.bot .emoji{ animation-delay:.10s; }
+  .menu-btn.bot .emoji svg{ animation: wiggle 1.8s ease-in-out .6s infinite; }
+  .menu-btn.shop .emoji{ animation-delay:.18s; }
+  .menu-btn.shop .emoji svg{ animation: swing 2.4s ease-in-out .7s infinite; transform-origin: 50% 15%; }
+  .menu-btn.diff-easy .emoji{ animation-delay:.02s; }
+  .menu-btn.diff-easy .emoji svg{ animation: bob 1.7s ease-in-out .4s infinite; }
+  .menu-btn.diff-medium .emoji{ animation-delay:.10s; }
+  .menu-btn.diff-medium .emoji svg{ animation: spinSlow 3.6s linear .4s infinite; }
+  .menu-btn.diff-extreme .emoji{ animation-delay:.18s; }
+  .menu-btn.diff-extreme .emoji svg{ animation: flicker 1s ease-in-out .4s infinite; }
+
+  .menu-btn.online{ background-image: linear-gradient(120deg, rgba(88,230,168,0.55), rgba(63,125,255,0.55), rgba(138,79,255,0.55), rgba(88,230,168,0.55)); color:#fff; animation: bgShift 5s ease-in-out infinite, glowPulse 2.2s ease-in-out infinite; }
+  .menu-btn.daily{ background-image: linear-gradient(120deg, rgba(255,176,224,0.5), rgba(194,63,160,0.5), rgba(255,176,224,0.5)); color:#fff; box-shadow: 0 12px 24px -8px rgba(194,63,160,0.4), inset 0 1px 0 rgba(255,255,255,0.3); }
+  .menu-btn.daily.claimed{ background-image: linear-gradient(120deg, rgba(58,63,92,0.5), rgba(38,43,69,0.5)); color:#93a5c9; animation: none; box-shadow:none; }
+  .menu-btn.daily.claimed .emoji{ filter: grayscale(0.7) opacity(0.6); }
+  .menu-btn.daily.claimed::after{ display:none; }
+  .menu-btn.friend{ background-image: linear-gradient(120deg, rgba(90,148,255,0.5), rgba(28,79,192,0.5), rgba(90,148,255,0.5)); color:#fff; box-shadow: 0 12px 24px -8px rgba(47,111,237,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .menu-btn.bot{ background-image: linear-gradient(120deg, rgba(255,128,120,0.5), rgba(181,52,45,0.5), rgba(255,128,120,0.5)); color:#fff; box-shadow: 0 12px 24px -8px rgba(224,69,63,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .menu-btn.shop{ background-image: linear-gradient(120deg, rgba(255,230,160,0.55), rgba(226,169,42,0.55), rgba(255,230,160,0.55)); color:#4a2e00; box-shadow: 0 12px 24px -8px rgba(226,169,42,0.35), inset 0 1px 0 rgba(255,255,255,0.4);}
+  .menu-btn.p4{ background-image: linear-gradient(120deg, rgba(255,201,92,0.5), rgba(63,125,255,0.5), rgba(46,222,160,0.5), rgba(255,90,82,0.5)); color:#fff; box-shadow: 0 12px 24px -8px rgba(138,79,255,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .menu-btn.diff-easy{ background-image: linear-gradient(120deg, rgba(88,230,168,0.55), rgba(28,157,109,0.55), rgba(88,230,168,0.55)); color:#052d20; box-shadow: 0 12px 24px -8px rgba(46,222,160,0.35), inset 0 1px 0 rgba(255,255,255,0.35);}
+  .menu-btn.diff-medium{ background-image: linear-gradient(120deg, rgba(255,201,92,0.55), rgba(214,141,31,0.55), rgba(255,201,92,0.55)); color:#3a2400; box-shadow: 0 12px 24px -8px rgba(255,201,92,0.3), inset 0 1px 0 rgba(255,255,255,0.35);}
+  .menu-btn.diff-extreme{ background-image: linear-gradient(120deg, rgba(255,90,82,0.55), rgba(125,24,21,0.55), rgba(255,90,82,0.55)); color:#fff; box-shadow: 0 12px 24px -8px rgba(255,90,82,0.4), inset 0 1px 0 rgba(255,255,255,0.3);}
+  .menu-btn.diff-ultra{ background-image: linear-gradient(120deg, rgba(224,176,255,0.55), rgba(106,31,201,0.6), rgba(224,176,255,0.55)); color:#fff; box-shadow: 0 14px 28px -8px rgba(106,31,201,0.55), inset 0 1px 0 rgba(255,255,255,0.35); animation: bgShift 4s ease-in-out infinite, glowPulse 1.8s ease-in-out infinite; }
+  .menu-btn.diff-ultra .emoji svg{ animation: flicker .7s ease-in-out infinite; }
+  .rules{ margin-top:6px; max-width:300px; font-size:12px; color:var(--sub); line-height:1.6; }
+  .back-link{ margin-top:8px; font-size:13px; color:var(--sub); font-weight:700; cursor:pointer; padding:8px 14px; }
+
+  @keyframes dotPulse{ 0%,100%{ transform:scale(1); box-shadow:0 0 0 0 rgba(255,77,77,0.6);} 50%{ transform:scale(1.15); box-shadow:0 0 0 5px rgba(255,77,77,0);} }
+  @keyframes cornerShake{ 0%,100%{ transform:rotate(0deg);} 25%{ transform:rotate(-8deg);} 75%{ transform:rotate(8deg);} }
+  @keyframes toastFloat{ 0%{ transform:translateY(0); opacity:0;} 15%{ opacity:1;} 80%{ opacity:1;} 100%{ transform:translateY(-14px); opacity:0;} }
+  .daily-corner{
+    position:absolute; top:2px; right:2px; z-index:6;
+    width:46px; height:46px; border-radius:14px 4px 14px 4px;
+    background: linear-gradient(160deg,#ffb0e0,#c23fa0);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow: 0 8px 18px -6px rgba(194,63,160,0.6), inset 0 1px 0 rgba(255,255,255,0.35);
+    cursor:pointer; transition: transform .12s;
+  }
+  .daily-corner:active{ transform: scale(0.9); }
+  .daily-corner svg{ width:24px; height:24px; }
+  .daily-corner.claimed{ background: linear-gradient(160deg,#3a3f5c,#262b45); box-shadow:none; }
+  .daily-corner.claimed svg{ filter: grayscale(0.75) opacity(0.55); }
+  .daily-corner.shake{ animation: cornerShake .35s ease-in-out; }
+  .daily-dot{ position:absolute; top:-3px; right:-3px; width:13px; height:13px; border-radius:50%; background:#ff4d4d; border:2px solid #0b1220; animation: dotPulse 1.3s ease-in-out infinite; }
+  .daily-dot.hide{ display:none; }
+  .daily-toast{
+    position:absolute; top:52px; right:2px; z-index:6;
+    background: rgba(15,22,40,0.95); border:1px solid rgba(255,255,255,0.12);
+    border-radius:10px; padding:6px 10px; font-size:11px; font-weight:700; color:#eaf0fb;
+    white-space:nowrap; pointer-events:none; opacity:0;
+  }
+  .daily-toast.show{ animation: toastFloat 1.7s ease-out forwards; }
+
+  /* ---------- matchmaking ---------- */
+  .radar{ width:120px; height:120px; position:relative; margin: 20px 0 22px; }
+  .radar-ring{ position:absolute; inset:0; border-radius:50%; border:2px solid rgba(63,125,255,0.35); }
+  .radar-ring.r2{ inset:16px; border-color: rgba(63,125,255,0.5); }
+  .radar-ring.r3{ inset:32px; border-color: rgba(63,125,255,0.7); }
+  .radar-core{ position:absolute; inset:44px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #7fb0ff, #1c4fc0); box-shadow: 0 0 22px rgba(63,125,255,0.7); animation: spinnerRot 1.4s linear infinite; }
+  .radar-sweep{ position:absolute; inset:0; border-radius:50%; background: conic-gradient(from 0deg, rgba(63,125,255,0.5), transparent 35%); animation: spinnerRot 1.6s linear infinite; }
+  .match-dots{ display:flex; gap:6px; margin-top:4px; }
+  .match-dots span{ width:7px; height:7px; border-radius:50%; background:#7fb0ff; animation: dotBounce 1.2s ease-in-out infinite; }
+  .match-dots span:nth-child(2){ animation-delay:.15s; }
+  .match-dots span:nth-child(3){ animation-delay:.3s; }
+  .match-cancel{ margin-top:22px; font-size:13px; color:var(--sub); font-weight:700; cursor:pointer; padding:8px 16px; border:1px solid rgba(255,255,255,0.12); border-radius:20px; }
+
+  /* ---------- shop ---------- */
+  .shop-tabs{ display:flex; gap:8px; width:100%; max-width:320px; margin-bottom:12px; }
+  .shop-tab{ flex:1; text-align:center; padding:9px 6px; border-radius:12px; font-size:12.5px; font-weight:800; cursor:pointer; background: rgba(255,255,255,0.06); color:var(--sub); border:1px solid rgba(255,255,255,0.08); }
+  .shop-tab.active{ background: linear-gradient(160deg,#4be8b8,#1fae86); color:#052d20; }
+
+  .skin-grid{ width:100%; max-width:320px; display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px; }
+  .skin-card{ background: rgba(255,255,255,0.07); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); border:1px solid rgba(255,255,255,0.16); border-radius:18px; padding:14px 8px 12px; display:flex; flex-direction:column; align-items:center; gap:8px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+  .skin-card.selected{ border-color: var(--blue); box-shadow: 0 0 0 3px rgba(63,125,255,0.2); }
+  .skin-card.vip-card{ border-color: rgba(255,201,92,0.5); box-shadow: 0 0 0 2px rgba(255,201,92,0.15); }
+  .skin-ball{ width:52px; height:52px; border-radius:50%; box-shadow: 0 4px 8px rgba(0,0,0,0.35), inset 0 -4px 6px rgba(0,0,0,0.25), inset 0 3px 4px rgba(255,255,255,0.6); position:relative; display:flex; align-items:center; justify-content:center; }
+  .skin-wall{ width:60px; height:22px; border-radius:6px; box-shadow: 0 3px 6px rgba(0,0,0,0.35), inset 0 1px 2px rgba(255,255,255,0.5); }
+  .skin-card .sname{ font-size:12.5px; font-weight:800; }
+  .skin-card .sbtn{ width:100%; border:none; cursor:pointer; border-radius:10px; padding:7px 4px; font-size:11.5px; font-weight:800; }
+  .skin-card .sbtn.buy{ background: linear-gradient(160deg,#ffe6a0,#e2a92a); color:#4a2e00; }
+  .skin-card .sbtn.buy:disabled{ opacity:0.35; cursor:not-allowed; }
+  .skin-card .sbtn.select{ background: rgba(255,255,255,0.1); color:#eaf0fb; }
+  .skin-card .sbtn.selected{ background: linear-gradient(160deg,#4be8b8,#1fae86); color:#052d20; }
+
+  .skin-animated{ animation: hueShift 3.5s linear infinite; }
+  .vip-label{ position:relative; z-index:2; font-size:6px; font-weight:900; color:#fff; letter-spacing:0.5px; text-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 0 4px rgba(0,0,0,0.4); }
+  .skin-ball .vip-label{ font-size:11px; }
+  .skin-ball{ border: 2px solid #ffe6a0; }
+  .saturn-ring{
+    position:absolute; left:50%; top:50%; width:172%; height:56%;
+    transform: translate(-50%,-50%) rotate(-18deg);
+    border-radius:50%;
+    border: 2.4px solid rgba(230,200,140,0.9);
+    box-shadow: 0 0 3px rgba(230,200,140,0.7), inset 0 0 3px rgba(230,200,140,0.5);
+    pointer-events:none;
+  }
+  @keyframes trailFade{ 0%{ opacity:0.75; transform:scale(1);} 100%{ opacity:0; transform:scale(0.35);} }
+  .fire-trail{ position:absolute; border-radius:50%; pointer-events:none; z-index:2;
+    background: radial-gradient(circle, #ffe2b0 0%, #ff8a3d 45%, #c8390f 80%, transparent 100%);
+    animation: trailFade .5s ease-out forwards; }
+
+  .vip-banner{ width:100%; max-width:320px; margin-bottom:14px; border-radius:16px; padding:12px 14px; display:flex; align-items:center; gap:12px; text-align:left; }
+  .vip-banner.locked{ background: linear-gradient(120deg, rgba(255,201,92,0.16), rgba(255,90,82,0.10)); border:1.5px solid rgba(255,201,92,0.35); }
+  .vip-banner.unlocked{ background: linear-gradient(120deg, rgba(255,201,92,0.28), rgba(255,201,92,0.1)); border:1.5px solid rgba(255,201,92,0.6); }
+  .vip-crown{ width:34px; height:34px; flex:none; }
+  .vip-crown svg{ width:100%; height:100%; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.35)); }
+  .vip-txt{ flex:1; }
+  .vip-txt b{ display:block; font-size:13.5px; color:#ffe6a0; }
+  .vip-txt small{ display:block; font-size:11px; color:var(--sub); margin-top:1px; }
+  .vip-buy-btn{ border:none; cursor:pointer; border-radius:10px; padding:8px 12px; font-weight:800; font-size:12.5px; flex:none; background: linear-gradient(160deg,#ffe6a0,#e2a92a); color:#4a2e00; }
+  .vip-buy-btn:disabled{ opacity:0.4; cursor:not-allowed; }
+
+  /* ---------- game screen ---------- */
+  #gameScreen{ display:none; }
+  #game4pScreen{ display:none; }
+  .players4-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
+  .pcard4{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:16px; border:1.5px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); transition: all .2s ease; }
+  .pcard4 .info{ font-size:11px; line-height:1.25; }
+  .pcard4 .name{ font-weight:800; font-size:12.5px; }
+  .pcard4 .walls{ color:var(--sub); font-weight:600; }
+  .pcard4.active.blue{ border-color:var(--blue); box-shadow:0 0 0 3px rgba(63,125,255,0.18); }
+  .pcard4.active.red{ border-color:var(--red); box-shadow:0 0 0 3px rgba(255,90,82,0.18); }
+  .pcard4.active.green{ border-color:#4be8b8; box-shadow:0 0 0 3px rgba(75,232,184,0.18); }
+  .pcard4.active.yellow{ border-color:#ffc95c; box-shadow:0 0 0 3px rgba(255,201,92,0.18); }
+  .dot.green{ background: radial-gradient(circle at 32% 28%, #b8fbe4, #4be8b8 45%, #0e6b4a); }
+  .dot.yellow{ background: radial-gradient(circle at 32% 28%, #fff0c2, #ffc95c 45%, #b8860b); }
+  .ball.green{ background: radial-gradient(circle at 32% 26%, #d8fff0 0%, #4be8b8 42%, #0e6b4a 100%); }
+  .ball.yellow{ background: radial-gradient(circle at 32% 26%, #fff6d8 0%, #ffd766 42%, #b8860b 100%); }
+  .ball.active-turn.green{ animation: pulseRing 1.4s ease-in-out infinite; box-shadow:0 0 0 0 rgba(75,232,184,0.55); }
+  .ball.active-turn.yellow{ animation: pulseRing 1.4s ease-in-out infinite; box-shadow:0 0 0 0 rgba(255,201,92,0.55); }
+  .gap.walled.green{ background: linear-gradient(180deg,#9dffe0,#12c98f) !important; }
+  .gap.walled.yellow{ background: linear-gradient(180deg,#ffe6a0,#c98a1c) !important; }
+  #grid4{ background: linear-gradient(135deg,#f3eefc,#eaf3ff,#eefcf5,#fff8e6); }
+  .cell.goal-green{ background: linear-gradient(90deg, rgba(75,232,184,0.20), rgba(75,232,184,0.03)); }
+  .cell.goal-yellow{ background: linear-gradient(270deg, rgba(255,201,92,0.20), rgba(255,201,92,0.03)); }
+  .thinking4{ position:absolute; inset:11px; border-radius:14px; display:none; align-items:center; justify-content:center; gap:8px; background: rgba(8,13,24,0.4); backdrop-filter: blur(1px); font-size:13px; font-weight:800; color:#fff; z-index:5; }
+  .thinking4.show{ display:flex; }
+  .top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; gap:6px; }
+  .top h1{ font-size:19px; margin:0; font-weight:900; }
+  .top h1 span{ background:linear-gradient(90deg,var(--blue),#8a4fff,var(--red)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .top .right{ display:flex; gap:6px; align-items:center; }
+  .pill-btn{ font-size:12px; font-weight:700; padding:7px 11px; border-radius:20px; cursor:pointer; border:1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.10); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); color:#eaf0fb; transition: transform .1s; white-space:nowrap; display:flex; align-items:center; gap:5px; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+  .pill-btn svg{ width:14px; height:14px; }
+  .pill-btn:active{ transform:scale(0.9); }
+  .pill-btn.danger{ color:#ffd2cf; background:rgba(255,90,82,0.16); border-color:rgba(255,90,82,0.4); }
+  .pill-btn.coins{ background: linear-gradient(160deg,#ffe6a0,#e2a92a); color:#4a2e00; border:none; }
+
+  .players{ display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+  .pcard{ flex:1; display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:18px; border:1.5px solid rgba(255,255,255,0.14); background: rgba(255,255,255,0.06); backdrop-filter: blur(14px) saturate(150%); -webkit-backdrop-filter: blur(14px) saturate(150%); transition: all .2s ease; box-shadow: inset 0 1px 0 rgba(255,255,255,0.15); }
+  .pcard.active.blue{ border-color: var(--blue); box-shadow:0 0 0 4px rgba(63,125,255,0.16), 0 6px 16px -6px var(--blue-glow); }
+  .pcard.active.red{ border-color: var(--red); box-shadow:0 0 0 4px rgba(255,90,82,0.16), 0 6px 16px -6px var(--red-glow); }
+  .dot{ width:22px; height:22px; border-radius:50%; flex:none; box-shadow: inset 0 -2px 3px rgba(0,0,0,0.25), 0 2px 4px rgba(0,0,0,0.3); position:relative; display:flex; align-items:center; justify-content:center; }
+  .dot.red{ background: radial-gradient(circle at 32% 28%, #ffd6d3, #ff8078 45%, var(--red-dark)); }
+  .pcard .info{ font-size:12px; line-height:1.3; min-width:0; }
+  .pcard .name{ font-weight:800; font-size:13.5px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .pcard .walls{ color:var(--sub); font-weight:600; }
+  .vs{ font-size:11px; color:var(--sub); font-weight:800; opacity:0.7; }
+
+  .diff-badge{ display:inline-block; margin-left:5px; font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:8px; vertical-align:middle; }
+  .diff-badge.easy{ background:rgba(46,222,160,0.18); color:#4be8b8; }
+  .diff-badge.medium{ background:rgba(255,201,92,0.18); color:#ffc95c; }
+  .diff-badge.extreme{ background:rgba(255,90,82,0.2); color:#ff8078; }
+  .diff-badge.ultra{ background:rgba(106,31,201,0.28); color:#dcb0ff; }
+  .diff-badge.online{ background:rgba(63,125,255,0.2); color:#7fb0ff; }
+
+  .board-wrap{ border-radius:26px; padding:11px; background: linear-gradient(165deg, rgba(52,69,110,0.55), rgba(14,23,48,0.55)); backdrop-filter: blur(20px) saturate(160%); -webkit-backdrop-filter: blur(20px) saturate(160%); border:1px solid rgba(255,255,255,0.18); box-shadow: 0 22px 46px -14px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.18), inset 0 -1px 0 rgba(0,0,0,0.3); display:flex; justify-content:center; position:relative; }
+  .thinking{ position:absolute; inset:11px; border-radius:14px; display:none; align-items:center; justify-content:center; gap:8px; background: rgba(8,13,24,0.4); backdrop-filter: blur(1px); font-size:13.5px; font-weight:800; color:#fff; z-index:5; }
+  .thinking.show{ display:flex; }
+  .thinking svg{ width:18px; height:18px; animation: floatGlow 1s ease-in-out infinite; }
+
+  #gridOuter{ position:relative; }
+  #grid{ display:grid; background: linear-gradient(165deg,#ffffff,#e4eaf6); border-radius:12px; padding:6px; box-shadow: inset 0 2px 6px rgba(20,30,60,0.12); }
+  #gridOuter4{ position:relative; }
+  #grid4{ display:grid; background: linear-gradient(165deg,#ffffff,#e4eaf6); border-radius:12px; padding:6px; box-shadow: inset 0 2px 6px rgba(20,30,60,0.12); }
+  .cell{ background: #ffffff; border-radius:7px; position:relative; box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(30,40,70,0.06); }
+  .cell.goal-blue{ background: linear-gradient(180deg, rgba(63,125,255,0.16), rgba(63,125,255,0.04)); }
+  .cell.goal-red{ background: linear-gradient(0deg, rgba(255,90,82,0.16), rgba(255,90,82,0.04)); }
+  .cell.highlight{ background: rgba(46,222,160,0.4) !important; cursor:pointer; animation: highlightPulse 1.1s ease-in-out infinite; }
+
+  .gap{ border-radius:5px; }
+  .gap.h{ background: rgba(20,30,50,0.05); }
+  .gap.v{ background: rgba(20,30,50,0.05); }
+  .gap.wallable{ cursor:pointer; }
+  .gap.wallable:active{ background: rgba(46,222,160,0.5); }
+  .gap.walled{ animation: popIn .25s cubic-bezier(.3,1.6,.5,1); box-shadow: 0 1px 3px rgba(0,0,0,0.25);}
+  .gap.walled.red{ background: linear-gradient(180deg,#ffa39e,var(--red-dark)) !important; }
+  .corner{ background: transparent; }
+  .corner.walled{ box-shadow: 0 1px 3px rgba(0,0,0,0.25); }
+  .corner.walled.red{ background: linear-gradient(180deg,#ffa39e,var(--red-dark)) !important; }
+  .corner.walled.green{ background: linear-gradient(180deg,#9dffe0,#12c98f) !important; }
+  .corner.walled.yellow{ background: linear-gradient(180deg,#ffe6a0,#c98a1c) !important; }
+
+  .ball{ position:absolute; border-radius:50%; transition: left .28s cubic-bezier(.4,.2,.2,1), top .28s cubic-bezier(.4,.2,.2,1); z-index:3; box-shadow: 0 3px 6px rgba(10,20,50,0.4), inset 0 -3px 5px rgba(0,30,90,0.35), inset 0 2px 3px rgba(255,255,255,0.6); display:flex; align-items:center; justify-content:center; }
+  .ball.red{ background: radial-gradient(circle at 32% 26%, #ffe3e1 0%, #ff8b84 42%, var(--red-dark) 100%); }
+  .ball.active-turn.blue{ animation: pulseRing 1.4s ease-in-out infinite; }
+  .ball.active-turn.red{ animation: pulseRingRed 1.4s ease-in-out infinite; }
+  .ball.win{ animation: popIn .5s cubic-bezier(.3,1.7,.4,1); }
+
+  .controls{ margin-top:16px; display:flex; gap:9px; }
+  .btn{ flex:1; border:none; cursor:pointer; padding:13px 8px; border-radius:16px; font-weight:800; font-size:13.5px; display:flex; align-items:center; justify-content:center; gap:6px; transition: transform .1s ease, opacity .15s, filter .1s; }
+  .btn svg{ width:16px; height:16px; }
+  .btn:active{ transform: scale(0.94); filter:brightness(0.92); }
+  .btn.mode{ background: rgba(255,255,255,0.10); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); color:#eaf0fb; border:1px solid rgba(255,255,255,0.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+  .btn.mode.on{ background: linear-gradient(160deg, #4be8b8, #1fae86); color:#052d20; box-shadow: 0 8px 18px -6px rgba(46,222,160,0.5), inset 0 1px 0 rgba(255,255,255,0.4); }
+  .btn.reset{ background: rgba(255,255,255,0.10); backdrop-filter: blur(14px) saturate(160%); -webkit-backdrop-filter: blur(14px) saturate(160%); color:#eaf0fb; border:1px solid rgba(255,255,255,0.22); box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+  .btn:disabled{ opacity:0.35; cursor:not-allowed; transform:none; }
+
+  .hint{ margin-top:12px; text-align:center; font-size:12.5px; color:var(--sub); line-height:1.5; min-height:18px; }
+
+  .msg-overlay{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(4,7,15,0.78); z-index:20; overflow:hidden; }
+  .msg-overlay.show{ display:flex; }
+  .msg-box{ background: linear-gradient(165deg,rgba(27,39,64,0.75),rgba(14,21,38,0.75)); backdrop-filter: blur(24px) saturate(160%); -webkit-backdrop-filter: blur(24px) saturate(160%); border-radius:24px; padding:30px 24px; text-align:center; width:min(84vw,320px); border:1px solid rgba(255,255,255,0.22); box-shadow: 0 30px 60px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.2); animation: popIn .35s cubic-bezier(.3,1.6,.4,1); position:relative; z-index:2; }
+  .msg-box .big{ font-size:23px; font-weight:900; margin-bottom:6px; }
+  .msg-box .small{ font-size:13px; color:var(--sub); margin-bottom:10px; }
+  .msg-box .coin-earned{ display:none; align-items:center; justify-content:center; gap:6px; font-size:14px; font-weight:900; color:#ffc95c; margin-bottom:16px; animation: coinPop .4s cubic-bezier(.3,1.7,.4,1); }
+  .msg-box .coin-earned svg{ width:17px; height:17px; }
+  .msg-box .coin-earned.show{ display:flex; }
+  .msg-box .row{ display:flex; gap:10px; }
+  .msg-box button{ flex:1; border:none; cursor:pointer; padding:12px 14px; border-radius:13px; font-weight:800; font-size:13.5px; transition: transform .1s; }
+  .msg-box button:active{ transform:scale(0.95); }
+  .msg-box .again{ background: linear-gradient(160deg,#5a94ff,var(--blue-dark)); color:#fff; }
+  .msg-box .menu{ background: rgba(255,255,255,0.08); color:#eaf0fb; }
+  .confetti{ position:absolute; top:0; width:8px; height:14px; border-radius:2px; z-index:1; }
+</style>
+</head>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<body>
+<div id="app">
+
+  <div id="menuScreen">
+    <div class="daily-corner" id="dailyCorner">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gGift1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb0e0"/><stop offset="1" stop-color="#c23fa0"/></linearGradient></defs>
+        <rect x="4" y="9.5" width="16" height="10.2" rx="1.6" fill="url(#gGift1)"/>
+        <rect x="3" y="6.7" width="18" height="3.4" rx="1.2" fill="url(#gGift1)"/>
+        <rect x="10.9" y="6.7" width="2.2" height="13" fill="#fff" opacity="0.55"/>
+        <path d="M12 6.7c-1.6-3.2-5.4-2.9-5.2-.6.1 1 1.4 1 5.2.6z" fill="url(#gGift1)"/>
+        <path d="M12 6.7c1.6-3.2 5.4-2.9 5.2-.6-.1 1-1.4 1-5.2.6z" fill="url(#gGift1)"/>
+      </svg>
+      <div class="daily-dot" id="dailyDot"></div>
+    </div>
+    <div class="daily-toast" id="dailyToast"></div>
+
+    <div class="logo">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gLogo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe8ff"/></linearGradient></defs>
+        <rect x="2.5" y="4" width="19" height="16" rx="3" fill="none" stroke="url(#gLogo)" stroke-width="1.8"/>
+        <line x1="2.5" y1="9.3" x2="21.5" y2="9.3" stroke="url(#gLogo)" stroke-width="1.8"/>
+        <line x1="2.5" y1="14.7" x2="21.5" y2="14.7" stroke="url(#gLogo)" stroke-width="1.8"/>
+        <line x1="8.2" y1="4" x2="8.2" y2="9.3" stroke="url(#gLogo)" stroke-width="1.8"/>
+        <line x1="15.8" y1="9.3" x2="15.8" y2="14.7" stroke="url(#gLogo)" stroke-width="1.8"/>
+        <line x1="8.2" y1="14.7" x2="8.2" y2="20" stroke="url(#gLogo)" stroke-width="1.8"/>
+      </svg>
+    </div>
+    <h1 class="title">Wall<span>Rush</span></h1>
+    <div class="tagline">Raqibning yo'lini to'sib, birinchi bo'lib qarshi chetga yet</div>
+    <div class="status-row">
+      <div class="coin-pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#fff3c4" stroke="#a9700a" stroke-width="1.4"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="#a9700a" stroke-width="1.1"/></svg><span class="n" id="coinCountMenu">0</span></div>
+      <div class="level-pill" id="levelPillMenu"><svg viewBox="0 0 24 24">
+        <path d="M7.2 12.5L4.3 20.5L9 18.3L11.8 20.5L9.6 13.1Z" fill="#a8342b"/>
+        <path d="M16.8 12.5L19.7 20.5L15 18.3L12.2 20.5L14.4 13.1Z" fill="#a8342b"/>
+        <circle cx="12" cy="9.3" r="7.3" fill="#ffe6a0" stroke="#c98a1c" stroke-width="0.6"/>
+        <path d="M12 5.2l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff8e6"/>
+      </svg><span id="levelCountMenu">1</span></div>
+    </div>
+
+    <button class="menu-btn daily-hidden" id="dailyBtnOld" style="display:none;"></button>
+
+    <button class="menu-btn online" id="playOnlineBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gOnline1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe0ff"/><stop offset="1" stop-color="#1c8fc0"/></linearGradient></defs>
+        <circle cx="12" cy="12" r="9" fill="url(#gOnline1)"/>
+        <ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="#fff" stroke-width="1.1" opacity="0.85"/>
+        <line x1="3" y1="12" x2="21" y2="12" stroke="#fff" stroke-width="1.1" opacity="0.85"/>
+        <path d="M4.5 7.5c2 1.4 4.8 2.2 7.5 2.2s5.5-.8 7.5-2.2M4.5 16.5c2-1.4 4.8-2.2 7.5-2.2s5.5.8 7.5 2.2" stroke="#fff" stroke-width="1.1" fill="none" opacity="0.85"/>
+      </svg></div>
+      <div class="txt"><b>Onlayn o'ynash</b><small>Tasodifiy raqib bilan tezkor o'yin</small></div>
+    </button>
+
+    <button class="menu-btn friend" id="playFriendBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gFriend1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fb0ff"/><stop offset="1" stop-color="#1c4fc0"/></linearGradient></defs>
+        <circle cx="7.6" cy="8.3" r="2.9" fill="url(#gFriend1)" opacity="0.55"/>
+        <path d="M2.2 19c0-3.3 2.5-5.1 5.4-5.1 1 0 1.9.2 2.7.6-1.5 1.1-2.4 2.8-2.4 4.7v.5H2.2v-.7z" fill="url(#gFriend1)" opacity="0.55"/>
+        <circle cx="15.9" cy="9.1" r="3.4" fill="url(#gFriend1)"/>
+        <path d="M9.4 20.1c0-3.7 2.9-5.9 6.3-5.9s6.3 2.2 6.3 5.9v.5H9.4v-.5z" fill="url(#gFriend1)"/>
+      </svg></div>
+      <div class="txt"><b>Do'st bilan o'ynash</b><small>Shu telefonda navbat bilan</small></div>
+    </button>
+
+    <button class="menu-btn p4" id="play4pBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="8" cy="8" r="3" fill="#3f7dff"/>
+        <circle cx="16" cy="8" r="3" fill="#ff5a52"/>
+        <circle cx="8" cy="16" r="3" fill="#4be8b8"/>
+        <circle cx="16" cy="16" r="3" fill="#ffc95c"/>
+      </svg></div>
+      <div class="txt"><b>4 kishi o'ynash</b><small>Bitta qurilmada 4 kishi, kvadrat taxta</small></div>
+    </button>
+
+    <button class="menu-btn bot" id="playBotBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gBot1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff9a8f"/><stop offset="1" stop-color="#b5342d"/></linearGradient></defs>
+        <rect x="4" y="5.5" width="16" height="14" rx="4.5" fill="url(#gBot1)" stroke="#7a1e18" stroke-width="0.4"/>
+        <rect x="10.6" y="2" width="2.8" height="3" rx="1.4" fill="url(#gBot1)"/>
+        <rect x="7" y="10" width="10" height="6.8" rx="2.2" fill="#fff"/>
+        <circle cx="9.7" cy="13.4" r="1.25" fill="#7a1e18"/>
+        <circle cx="14.3" cy="13.4" r="1.25" fill="#7a1e18"/>
+      </svg></div>
+      <div class="txt"><b>Bot bilan o'ynash</b><small>Kompyuterga qarshi</small></div>
+    </button>
+
+    <button class="menu-btn shop" id="openShopBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gShop1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffedbb"/><stop offset="1" stop-color="#d99a1f"/></linearGradient></defs>
+        <path d="M12.6 3.3l7.9 7.9a2.3 2.3 0 010 3.25l-6.85 6.85a2.3 2.3 0 01-3.25 0l-7.9-7.9a2.3 2.3 0 01-.67-1.62V4.4A1.4 1.4 0 013.2 3H10.98a2.3 2.3 0 011.62.67z" fill="url(#gShop1)"/>
+        <circle cx="7.4" cy="7.6" r="1.7" fill="#fff"/>
+      </svg></div>
+      <div class="txt"><b>Do'kon</b><small>Tanga to'plab skinlar sotib oling</small></div>
+    </button>
+
+    <div class="rules">Har bir g'alaba uchun 10 tanga olasiz. G'olibga 12 tadan devor beriladi.</div>
+  </div>
+
+  <div id="matchScreen">
+    <div class="logo" style="margin-bottom:6px;"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#fff"/><ellipse cx="12" cy="12" rx="4" ry="9" fill="none" stroke="#3f7dff" stroke-width="1.1"/><line x1="3" y1="12" x2="21" y2="12" stroke="#3f7dff" stroke-width="1.1"/></svg></div>
+    <h1 class="title">Raqib <span>qidirilmoqda</span></h1>
+    <div class="radar">
+      <div class="radar-sweep"></div>
+      <div class="radar-ring"></div>
+      <div class="radar-ring r2"></div>
+      <div class="radar-ring r3"></div>
+      <div class="radar-core"></div>
+    </div>
+    <div class="match-dots"><span></span><span></span><span></span></div>
+    <div class="match-cancel" id="matchCancelBtn">Bekor qilish</div>
+  </div>
+
+  <div id="difficultyScreen">
+    <div class="logo"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <rect x="4" y="5.5" width="16" height="14" rx="4.5" fill="#fff"/>
+      <rect x="10.6" y="2" width="2.8" height="3" rx="1.4" fill="#fff"/>
+      <circle cx="9.7" cy="13.4" r="1.25" fill="#3b3f66"/>
+      <circle cx="14.3" cy="13.4" r="1.25" fill="#3b3f66"/>
+    </svg></div>
+    <h1 class="title">Bot <span>qiyinligi</span></h1>
+    <div class="tagline">Botning kuchini tanlang</div>
+
+    <button class="menu-btn diff-easy" id="diffEasyBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gEasy1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7cf0bf"/><stop offset="1" stop-color="#1c9d6d"/></linearGradient></defs>
+        <circle cx="12" cy="12" r="8.6" fill="url(#gEasy1)"/>
+        <circle cx="8.7" cy="10.1" r="1.35" fill="#083c29"/><circle cx="15.3" cy="10.1" r="1.35" fill="#083c29"/>
+        <path d="M7.6 13.8c1 2.1 2.9 3.3 4.4 3.3s3.4-1.2 4.4-3.3" fill="none" stroke="#083c29" stroke-width="1.7" stroke-linecap="round"/>
+      </svg></div>
+      <div class="txt"><b>Oson</b><small>Bot ko'p xato qiladi, kam devor qo'yadi</small></div>
+    </button>
+    <button class="menu-btn diff-medium" id="diffMediumBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gMed1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd980"/><stop offset="1" stop-color="#d68d1f"/></linearGradient></defs>
+        <circle cx="12" cy="12" r="8.6" fill="url(#gMed1)"/>
+        <circle cx="8.7" cy="10.4" r="1.35" fill="#4a2e00"/><circle cx="15.3" cy="10.4" r="1.35" fill="#4a2e00"/>
+        <line x1="7.8" y1="15.2" x2="16.2" y2="15.2" stroke="#4a2e00" stroke-width="1.7" stroke-linecap="round"/>
+      </svg></div>
+      <div class="txt"><b>O'rtacha</b><small>Muvozanatli, ba'zan devor bilan to'sadi</small></div>
+    </button>
+    <button class="menu-btn diff-extreme" id="diffExtremeBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="gFireOut1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a5c"/><stop offset="1" stop-color="#c62b1e"/></linearGradient>
+          <linearGradient id="gFireIn1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff1b8"/><stop offset="1" stop-color="#ffb020"/></linearGradient>
+        </defs>
+        <path d="M12 2.2c2.6 3 4.9 5.9 4.9 9.6a4.9 4.9 0 01-9.8 0c0-1.6.6-2.8 1.3-3.7-.1 1.1.4 1.8.4 1.8.1-3.3 1.6-4.4 3.2-7.7z" fill="url(#gFireOut1)"/>
+        <path d="M12.3 9.4c1.1 1.6 1.9 2.8 1.9 4.1a2.15 2.15 0 01-4.3 0c0-.7.25-1.2.55-1.65 0 .5.3.8.3.8-.05-1.6.6-2.4 1.55-3.25z" fill="url(#gFireIn1)"/>
+      </svg></div>
+      <div class="txt"><b>Ekstremal</b><small>Profi kabi o'ynaydi — xato qilmaydi</small></div>
+    </button>
+
+    <button class="menu-btn diff-ultra" id="diffUltraBtn">
+      <div class="emoji"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <defs><linearGradient id="gUltra1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0b0ff"/><stop offset="1" stop-color="#6a1fc9"/></linearGradient></defs>
+        <path d="M13.2 2L5 13.5h5.2L9 22l9-12.5h-5.6L13.2 2z" fill="url(#gUltra1)" stroke="#3a0e70" stroke-width="0.5" stroke-linejoin="round"/>
+      </svg></div>
+      <div class="txt"><b>Ultra Ekstremal</b><small>Hech qachon adashmaydi, doim to'sadi</small></div>
+    </button>
+
+    <div class="back-link" id="diffBackBtn">‹ Orqaga</div>
+  </div>
+
+  <div id="shopScreen">
+    <div class="logo"><svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.6 3.3l7.9 7.9a2.3 2.3 0 010 3.25l-6.85 6.85a2.3 2.3 0 01-3.25 0l-7.9-7.9a2.3 2.3 0 01-.67-1.62V4.4A1.4 1.4 0 013.2 3H10.98a2.3 2.3 0 011.62.67z" fill="#fff"/>
+      <circle cx="7.4" cy="7.6" r="1.7" fill="#6d4fb0"/>
+    </svg></div>
+    <h1 class="title">Do'kon</h1>
+    <div class="tagline">O'zingizga yangi ko'rinish tanlang</div>
+    <div class="status-row">
+      <div class="coin-pill"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#fff3c4" stroke="#a9700a" stroke-width="1.4"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="#a9700a" stroke-width="1.1"/></svg><span class="n" id="coinCountShop">0</span></div>
+      <div class="level-pill" id="levelPillShop"><svg viewBox="0 0 24 24">
+        <path d="M7.2 12.5L4.3 20.5L9 18.3L11.8 20.5L9.6 13.1Z" fill="#a8342b"/>
+        <path d="M16.8 12.5L19.7 20.5L15 18.3L12.2 20.5L14.4 13.1Z" fill="#a8342b"/>
+        <circle cx="12" cy="9.3" r="7.3" fill="#ffe6a0" stroke="#c98a1c" stroke-width="0.6"/>
+        <path d="M12 5.2l1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4z" fill="#fff8e6"/>
+      </svg><span id="levelCountShop">1</span></div>
+    </div>
+
+    <div class="vip-banner" id="vipBanner"></div>
+
+    <div class="shop-tabs">
+      <div class="shop-tab active" id="tabBalls">Sharlar</div>
+      <div class="shop-tab" id="tabWalls">Devorlar</div>
+    </div>
+
+    <div class="skin-grid" id="skinGrid"></div>
+
+    <div class="back-link" id="shopBackBtn">‹ Orqaga</div>
+  </div>
+
+  <div id="setup4pScreen">
+    <div class="logo"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3" fill="#3f7dff"/><circle cx="16" cy="8" r="3" fill="#ff5a52"/><circle cx="8" cy="16" r="3" fill="#4be8b8"/><circle cx="16" cy="16" r="3" fill="#ffc95c"/></svg></div>
+    <h1 class="title">4 kishi <span>o'yin</span></h1>
+    <div class="tagline">Nechta o'rinni bot to'ldirsin?</div>
+
+    <button class="menu-btn diff-easy" id="bots0Btn"><div class="emoji"><svg viewBox="0 0 24 24"><circle cx="7" cy="12" r="3.2" fill="#3f7dff"/><circle cx="17" cy="12" r="3.2" fill="#ff5a52"/></svg></div><div class="txt"><b>0 bot</b><small>Hammasi odam — bitta qurilmada</small></div></button>
+    <button class="menu-btn diff-medium" id="bots1Btn"><div class="emoji"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="4.5" fill="#fff"/><circle cx="9.7" cy="13.4" r="1.25" fill="#3b3f66"/><circle cx="14.3" cy="13.4" r="1.25" fill="#3b3f66"/></svg></div><div class="txt"><b>1 bot</b><small>3 odam + 1 bot</small></div></button>
+    <button class="menu-btn diff-extreme" id="bots2Btn"><div class="emoji"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="4.5" fill="#fff"/><circle cx="9.7" cy="13.4" r="1.25" fill="#3b3f66"/><circle cx="14.3" cy="13.4" r="1.25" fill="#3b3f66"/></svg></div><div class="txt"><b>2 bot</b><small>2 odam + 2 bot</small></div></button>
+    <button class="menu-btn diff-ultra" id="bots3Btn"><div class="emoji"><svg viewBox="0 0 24 24"><rect x="4" y="5.5" width="16" height="14" rx="4.5" fill="#fff"/><circle cx="9.7" cy="13.4" r="1.25" fill="#3b3f66"/><circle cx="14.3" cy="13.4" r="1.25" fill="#3b3f66"/></svg></div><div class="txt"><b>3 bot</b><small>Yolg'iz siz, uchtasi bot</small></div></button>
+
+    <div class="back-link" id="setup4pBackBtn">‹ Orqaga</div>
+  </div>
+
+  <div id="game4pScreen">
+    <div class="top">
+      <h1>Wall<span>Rush</span> <small style="font-size:11px;color:var(--sub);">4 kishi</small></h1>
+      <div class="right">
+        <div class="pill-btn" id="menu4pBtn"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="12" x2="20" y2="12" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="17" x2="20" y2="17" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/></svg></div>
+      </div>
+    </div>
+
+    <div class="players4-grid" id="players4Grid">
+      <div class="pcard4 blue" id="pcard4-blue"><div class="dot blue"></div><div class="info"><div class="name">Ko'k</div><div class="walls">🧱 <span id="walls4-blue">5</span></div></div></div>
+      <div class="pcard4 red" id="pcard4-red"><div class="dot red"></div><div class="info"><div class="name">Qizil</div><div class="walls">🧱 <span id="walls4-red">5</span></div></div></div>
+      <div class="pcard4 green" id="pcard4-green"><div class="dot green"></div><div class="info"><div class="name">Yashil</div><div class="walls">🧱 <span id="walls4-green">5</span></div></div></div>
+      <div class="pcard4 yellow" id="pcard4-yellow"><div class="dot yellow"></div><div class="info"><div class="name">Sariq</div><div class="walls">🧱 <span id="walls4-yellow">5</span></div></div></div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="gridOuter4"><div id="grid4"></div></div>
+      <div class="thinking4" id="thinking4"><span id="thinking4Text">Bot o'ylayapti...</span></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn mode on" id="moveModeBtn4"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Yurish</button>
+      <button class="btn mode" id="wallModeBtn4"><svg viewBox="0 0 24 24"><rect x="3" y="10" width="8" height="4.5" rx="1" fill="currentColor"/><rect x="13" y="10" width="8" height="4.5" rx="1" fill="currentColor"/><rect x="8" y="4.5" width="8" height="4.5" rx="1" fill="currentColor" opacity="0.6"/></svg>Devor qo'yish</button>
+    </div>
+    <div class="controls">
+      <button class="btn reset" id="reset4pBtn"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.6 5.9" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" fill="none"/><path d="M4 17v-5h5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Qayta boshlash</button>
+    </div>
+
+    <div class="hint" id="hint4">Ko'k navbati — yashil katakka bosib yuring.</div>
+  </div>
+
+  <div id="gameScreen">
+    <div class="top">
+      <h1>Wall<span>Rush</span></h1>
+      <div class="right">
+        <div class="pill-btn coins"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#4a2e00"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="#ffe6a0" stroke-width="1.3"/></svg><span id="coinCountGame">0</span></div>
+        <div class="pill-btn" id="menuBtn"><svg viewBox="0 0 24 24"><line x1="4" y1="7" x2="20" y2="7" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="12" x2="20" y2="12" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/><line x1="4" y1="17" x2="20" y2="17" stroke="#eaf0fb" stroke-width="2" stroke-linecap="round"/></svg></div>
+        <div class="pill-btn danger" id="giveupBtn"><svg viewBox="0 0 24 24"><path d="M6 3v18" stroke="#ffb4af" stroke-width="2" stroke-linecap="round"/><path d="M6 4h11l-2.5 3.5L17 11H6V4z" fill="#ffb4af"/></svg></div>
+      </div>
+    </div>
+
+    <div class="players">
+      <div class="pcard blue" id="pcardBlue">
+        <div class="dot blue" id="dotBlue"></div>
+        <div class="info">
+          <div class="name">Siz</div>
+          <div class="walls">🧱 <span id="wallsBlue">12</span></div>
+        </div>
+      </div>
+      <div class="vs">VS</div>
+      <div class="pcard red" id="pcardRed">
+        <div class="dot red"></div>
+        <div class="info">
+          <div class="name" id="redName">Qizil</div>
+          <div class="walls">🧱 <span id="wallsRed">12</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="board-wrap">
+      <div id="gridOuter"><div id="grid"></div></div>
+      <div class="thinking" id="thinking">
+        <svg viewBox="0 0 24 24"><rect x="4.2" y="6.4" width="15.6" height="13.4" rx="5.5" fill="#ff9a8f"/><circle cx="9.3" cy="12.7" r="1.9" fill="#fff"/><circle cx="14.7" cy="12.7" r="1.9" fill="#fff"/></svg>
+        <span id="thinkingText">Bot o'ylayapti...</span>
+      </div>
+    </div>
+
+    <div class="controls">
+      <button class="btn mode on" id="moveModeBtn"><svg viewBox="0 0 24 24"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Yurish</button>
+      <button class="btn mode" id="wallModeBtn"><svg viewBox="0 0 24 24"><rect x="3" y="10" width="8" height="4.5" rx="1" fill="currentColor"/><rect x="13" y="10" width="8" height="4.5" rx="1" fill="currentColor"/><rect x="8" y="4.5" width="8" height="4.5" rx="1" fill="currentColor" opacity="0.6"/></svg>Devor qo'yish</button>
+    </div>
+    <div class="controls">
+      <button class="btn reset" id="resetBtn"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.6 5.9" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" fill="none"/><path d="M4 17v-5h5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>Qayta boshlash</button>
+    </div>
+
+    <div class="hint" id="hint">Yashil kataklarga bosib sharni suring.</div>
+  </div>
+</div>
+
+<div class="msg-overlay" id="overlay">
+  <div class="msg-box">
+    <div class="big" id="overlayTitle">Siz yutdingiz!</div>
+    <div class="small" id="overlaySub">Qarama-qarshi chetga birinchi yetdi</div>
+    <div class="coin-earned" id="coinEarned"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5" fill="#fff3c4" stroke="#a9700a" stroke-width="1.4"/><circle cx="12" cy="12" r="6.4" fill="none" stroke="#a9700a" stroke-width="1.1"/></svg><span id="coinEarnedText">+10</span></div>
+    <div class="row">
+      <button class="menu" id="overlayMenuBtn">Bosh menyu</button>
+      <button class="again" id="overlayBtn">Qayta o'ynash</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const R = 9, C = 7;
+  const CELL = 32, GAP = 14, PAD = 6;
+  const START_WALLS = 12;
+  const WIN_REWARD = 100;
+  const VIP_COST = 500;
+  const SAVE_KEY = 'wallrush_profile_v2';
+
+  const DIFF = {
+    easy:    { mistake:0.40, wallChance:0.15, gainThreshold:2.5, selfPenalty:0.40, label:'Oson' },
+    medium:  { mistake:0.10, wallChance:0.55, gainThreshold:1.0, selfPenalty:0.15, label:"O'rtacha" },
+    extreme: { mistake:0.0,  wallChance:0.92, gainThreshold:0.3, selfPenalty:0.04, label:'Ekstremal' },
+    ultra:   { mistake:0.0,  wallChance:1.0,  gainThreshold:0.0, selfPenalty:0.0,  label:'Ultra' }
+  };
+
+  const BALL_SKINS = {
+    default: { name:"Klassik", price:0,   css:"radial-gradient(circle at 32% 26%, #dbe8ff 0%, #6fa2ff 42%, #1c4fc0 100%)" },
+    gold:    { name:"Oltin",   price:50,  css:"radial-gradient(circle at 32% 26%, #fff6d8 0%, #ffd766 42%, #b8860b 100%)" },
+    galaxy:  { name:"Galaktika", price:80,
+      css:"radial-gradient(circle at 70% 75%, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0) 2%), radial-gradient(circle at 30% 60%, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0) 1.6%), radial-gradient(circle at 55% 30%, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 1.6%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 1.2%), radial-gradient(circle at 25% 25%, #ff9ae0 0%, transparent 45%), radial-gradient(circle at 32% 26%, #d9c8ff 0%, #7a4fdb 42%, #2b0f66 100%)" },
+    saturn:  { name:"Saturn", price:170, ring:true,
+      css:"radial-gradient(circle at 30% 26%, #ffe9c2 0%, #e0b872 40%, #a3792f 75%, #6b4c1c 100%)" },
+    meteorite: { name:"Meteorit", price:110,
+      css:"radial-gradient(circle at 75% 70%, rgba(0,0,0,0.35) 0%, transparent 10%), radial-gradient(circle at 35% 65%, rgba(0,0,0,0.3) 0%, transparent 8%), radial-gradient(circle at 60% 35%, rgba(0,0,0,0.3) 0%, transparent 9%), radial-gradient(circle at 32% 26%, #b8b0a8 0%, #7d766c 45%, #3a352f 100%)" },
+    emerald: { name:"Zumrad",  price:120, css:"radial-gradient(circle at 32% 26%, #d8fff0 0%, #4be8b8 42%, #0e6b4a 100%)" },
+    fire:    { name:"Olov",    price:150, css:"radial-gradient(circle at 32% 26%, #ffe2b0 0%, #ff8a3d 42%, #a8330a 100%)" },
+    diamond: { name:"Olmos",   price:200, css:"radial-gradient(circle at 32% 26%, #ffffff 0%, #aef0ff 42%, #1596b8 100%)" },
+    vipGold: { name:"VIP Tillo", price:0, vip:true, animated:true, vipLabel:true,
+      css:"conic-gradient(from 0deg, #ff5a52, #ffc95c, #4be8b8, #3f7dff, #8a4fff, #ff5a52)" }
+  };
+
+  const WALL_SKINS = {
+    default: { name:"Klassik", price:0,  css:"linear-gradient(180deg,#7fb0ff,#1c4fc0)" },
+    neon:    { name:"Neon",    price:60, css:"linear-gradient(180deg,#9dffe0,#12c98f)" },
+    lava:    { name:"Lava",    price:90, css:"linear-gradient(180deg,#ffb066,#c8390f)" },
+    royal:   { name:"Qirollik", price:130, css:"linear-gradient(180deg,#e0c8ff,#6d2fd6)" }
+  };
+
+  const CROWN_SVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs><linearGradient id="gCrown" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff6d8"/><stop offset="1" stop-color="#c98a1c"/></linearGradient></defs>' +
+    '<path d="M3.5 9.5L7 12.5L9.5 6L12 12L14.5 6L17 12.5L20.5 9.5L19 18H5L3.5 9.5Z" fill="url(#gCrown)"/>' +
+    '<rect x="5" y="18" width="14" height="2.2" rx="1" fill="url(#gCrown)"/>' +
+    '<circle cx="9.5" cy="6" r="1.15" fill="#fff"/><circle cx="12" cy="4.3" r="1.15" fill="#fff"/><circle cx="14.5" cy="6" r="1.15" fill="#fff"/></svg>';
+
+  let coins = 0;
+  let totalWins = 0;
+  let lastDailyClaim = 0;
+  let ownedBallSkins = new Set(['default']);
+  let ownedWallSkins = new Set(['default']);
+  let selectedBallSkin = 'default';
+  let selectedWallSkin = 'default';
+  let vipUnlocked = false;
+  let shopTab = 'balls';
+
+  function level(){ return 1 + Math.floor(totalWins/3); }
+  const DAILY_MS = 24*60*60*1000;
+  const LEVEL_UP_BONUS = 30;
+  function dailyAmount(){ return 20 + (level()-1)*5; }
+  function dailyReady(){ return (Date.now() - lastDailyClaim) >= DAILY_MS; }
+
+  function saveProfile(){
+    try{
+      localStorage.setItem(SAVE_KEY, JSON.stringify({
+        coins, totalWins, vipUnlocked, selectedBallSkin, selectedWallSkin, lastDailyClaim,
+        ownedBallSkins: Array.from(ownedBallSkins),
+        ownedWallSkins: Array.from(ownedWallSkins)
+      }));
+    }catch(e){}
+  }
+  function loadProfile(){
+    try{
+      let raw = localStorage.getItem(SAVE_KEY);
+      if(!raw){
+        // migrate from older save formats so nobody loses coins/VIP on an update
+        const old = localStorage.getItem('wallrush_profile_v1');
+        if(old){
+          const d = JSON.parse(old);
+          const migrated = {
+            coins: (typeof d.coins==='number' ? d.coins : 0) + 50, // small thank-you bonus for the hiccup
+            totalWins: 0,
+            vipUnlocked: !!d.vipUnlocked,
+            selectedBallSkin: d.selectedSkin || 'default',
+            selectedWallSkin: 'default',
+            ownedBallSkins: Array.isArray(d.ownedSkins) ? d.ownedSkins : ['default'],
+            ownedWallSkins: ['default']
+          };
+          localStorage.setItem(SAVE_KEY, JSON.stringify(migrated));
+          raw = JSON.stringify(migrated);
+        }
+      }
+      if(!raw) return;
+      const d = JSON.parse(raw);
+      if(typeof d.coins === 'number') coins = d.coins;
+      if(typeof d.totalWins === 'number') totalWins = d.totalWins;
+      if(typeof d.lastDailyClaim === 'number') lastDailyClaim = d.lastDailyClaim;
+      if(typeof d.vipUnlocked === 'boolean') vipUnlocked = d.vipUnlocked;
+      if(Array.isArray(d.ownedBallSkins)) ownedBallSkins = new Set(d.ownedBallSkins);
+      if(Array.isArray(d.ownedWallSkins)) ownedWallSkins = new Set(d.ownedWallSkins);
+      if(typeof d.selectedBallSkin === 'string' && BALL_SKINS[d.selectedBallSkin]) selectedBallSkin = d.selectedBallSkin;
+      if(typeof d.selectedWallSkin === 'string' && WALL_SKINS[d.selectedWallSkin]) selectedWallSkin = d.selectedWallSkin;
+      if(vipUnlocked) ownedBallSkins.add('vipGold');
+    }catch(e){}
+  }
+
+  const menuScreen = document.getElementById('menuScreen');
+  const matchScreen = document.getElementById('matchScreen');
+  const difficultyScreen = document.getElementById('difficultyScreen');
+  const shopScreen = document.getElementById('shopScreen');
+  const gameScreen = document.getElementById('gameScreen');
+  const playOnlineBtn = document.getElementById('playOnlineBtn');
+  const dailyCorner = document.getElementById('dailyCorner');
+  const dailyDot = document.getElementById('dailyDot');
+  const dailyToast = document.getElementById('dailyToast');
+  const playFriendBtn = document.getElementById('playFriendBtn');
+  const playBotBtn = document.getElementById('playBotBtn');
+  const openShopBtn = document.getElementById('openShopBtn');
+  const matchCancelBtn = document.getElementById('matchCancelBtn');
+  const diffEasyBtn = document.getElementById('diffEasyBtn');
+  const diffMediumBtn = document.getElementById('diffMediumBtn');
+  const diffExtremeBtn = document.getElementById('diffExtremeBtn');
+  const diffUltraBtn = document.getElementById('diffUltraBtn');
+  const diffBackBtn = document.getElementById('diffBackBtn');
+  const shopBackBtn = document.getElementById('shopBackBtn');
+  const tabBalls = document.getElementById('tabBalls');
+  const tabWalls = document.getElementById('tabWalls');
+  const skinGrid = document.getElementById('skinGrid');
+  const vipBanner = document.getElementById('vipBanner');
+  const menuBtn = document.getElementById('menuBtn');
+
+  const coinCountMenu = document.getElementById('coinCountMenu');
+  const coinCountShop = document.getElementById('coinCountShop');
+  const coinCountGame = document.getElementById('coinCountGame');
+  const levelCountMenu = document.getElementById('levelCountMenu');
+  const levelCountShop = document.getElementById('levelCountShop');
+  const levelPillMenu = document.getElementById('levelPillMenu');
+  const levelPillShop = document.getElementById('levelPillShop');
+  const coinEarnedEl = document.getElementById('coinEarned');
+  const coinEarnedText = document.getElementById('coinEarnedText');
+  const dotBlueEl = document.getElementById('dotBlue');
+
+  const grid = document.getElementById('grid');
+  const wallsBlueEl = document.getElementById('wallsBlue');
+  const wallsRedEl = document.getElementById('wallsRed');
+  const pcardBlue = document.getElementById('pcardBlue');
+  const pcardRed = document.getElementById('pcardRed');
+  const redNameEl = document.getElementById('redName');
+  const moveModeBtn = document.getElementById('moveModeBtn');
+  const wallModeBtn = document.getElementById('wallModeBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const giveupBtn = document.getElementById('giveupBtn');
+  const hint = document.getElementById('hint');
+  const thinkingEl = document.getElementById('thinking');
+  const thinkingText = document.getElementById('thinkingText');
+  const overlay = document.getElementById('overlay');
+  const overlayTitle = document.getElementById('overlayTitle');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const overlayMenuBtn = document.getElementById('overlayMenuBtn');
+
+  // Serverga ulanish (lokal test uchun)
+const socket = io("http://localhost:3000");
+
+let myColor = null; // 'blue' yoki 'red'
+let currentRoom = null;
+
+// Onlayn tugmasi bosilganda
+document.getElementById('playOnlineBtn').addEventListener('click', () => {
+  showScreen(matchScreen);
+  socket.emit('join_game');
+});
+
+// Serverdan o'yin boshlanish xabari kelganda
+socket.on('game_start', (data) => {
+  myColor = data.color;
+  currentRoom = data.roomId;
+  
+  showScreen(gameScreen);
+  initGame('online'); 
+  // Agar myColor 'blue' bo'lmasa, faqat o'z navbatida yura oladigan logic qo'shiladi
+});
+
+// Raqib yurish qilganda
+socket.on('opponent_move', (data) => {
+  if (data.type === 'move') {
+    // Raqib shari joyini yangilash
+    movePiece(data.x, data.y);
+  } else if (data.type === 'wall') {
+    // Raqib qo'ygan devorni taxtaga chizish
+    placeWall(data.wallData);
+  }
+});
+
+// O'zimiz yurganda serverga yuborish funksiyasi
+function sendMoveToServer(type, payload) {
+  if (activeMode === 'online') {
+    socket.emit('make_move', {
+      roomId: currentRoom,
+      type: type,
+      payload: payload
+    });
+  }
+}
+
+  let state;
+  let activeMode = '2p';
+  let ballBlueEl, ballRedEl;
+  let matchTimer = null;
+
+  function levelTier(){
+    const l = level();
+    if(l>=10) return 'diamond';
+    if(l>=6) return 'gold';
+    if(l>=3) return 'silver';
+    return 'bronze';
+  }
+  function updateCoinDisplays(){
+    coinCountMenu.textContent = coins;
+    coinCountShop.textContent = coins;
+    coinCountGame.textContent = coins;
+    levelCountMenu.textContent = level();
+    levelCountShop.textContent = level();
+    const tier = 'tier-' + levelTier();
+    [levelPillMenu, levelPillShop].forEach(el=>{
+      if(!el) return;
+      el.classList.remove('tier-bronze','tier-silver','tier-gold','tier-diamond');
+      el.classList.add(tier);
+    });
+  }
+
+  let dailyTickTimer = null;
+  function formatCountdown(ms){
+    const total = Math.max(0, Math.ceil(ms/1000));
+    const h = Math.floor(total/3600), m = Math.floor((total%3600)/60), s = total%60;
+    return (h>0 ? h+'s ' : '') + m+'m '+s+'s';
+  }
+  function showToast(msg){
+    dailyToast.textContent = msg;
+    dailyToast.classList.remove('show');
+    void dailyToast.offsetWidth;
+    dailyToast.classList.add('show');
+  }
+  function renderDaily(){
+    if(dailyReady()){
+      dailyCorner.classList.remove('claimed');
+      dailyDot.classList.remove('hide');
+    } else {
+      dailyCorner.classList.add('claimed');
+      dailyDot.classList.add('hide');
+    }
+  }
+  function claimDaily(){
+    if(!dailyReady()){
+      dailyCorner.classList.add('shake');
+      setTimeout(()=>dailyCorner.classList.remove('shake'), 350);
+      showToast('Keyingi: ' + formatCountdown(DAILY_MS - (Date.now()-lastDailyClaim)));
+      return;
+    }
+    const amt = dailyAmount();
+    coins += amt;
+    lastDailyClaim = Date.now();
+    updateCoinDisplays();
+    saveProfile();
+    renderDaily();
+    showToast('+' + amt + ' 🪙 olindi!');
+  }
+  function startDailyTicker(){
+    stopDailyTicker();
+    renderDaily();
+    dailyTickTimer = setInterval(renderDaily, 1000);
+  }
+  function stopDailyTicker(){
+    if(dailyTickTimer){ clearInterval(dailyTickTimer); dailyTickTimer = null; }
+  }
+
+  function applyBlueSkin(){
+    const skin = BALL_SKINS[selectedBallSkin];
+    [dotBlueEl, ballBlueEl].forEach(el=>{
+      if(!el) return;
+      el.style.background = skin.css;
+      el.classList.toggle('skin-animated', !!skin.animated);
+      const existingLabel = el.querySelector('.vip-label');
+      if(existingLabel) existingLabel.remove();
+      const existingRing = el.querySelector('.saturn-ring');
+      if(existingRing) existingRing.remove();
+      if(skin.vipLabel){
+        const lbl = document.createElement('span');
+        lbl.className = 'vip-label';
+        lbl.textContent = 'VIP';
+        el.appendChild(lbl);
+      }
+      if(skin.ring){
+        const ring = document.createElement('div');
+        ring.className = 'saturn-ring';
+        el.appendChild(ring);
+      }
+    });
+  }
+
+  function buyVip(){
+    if(vipUnlocked || coins < VIP_COST) return;
+    coins -= VIP_COST;
+    vipUnlocked = true;
+    ownedBallSkins.add('vipGold');
+    updateCoinDisplays();
+    saveProfile();
+    renderShop();
+  }
+
+  function renderVipBanner(){
+    vipBanner.innerHTML = '';
+    if(vipUnlocked){
+      vipBanner.className = 'vip-banner unlocked';
+      vipBanner.innerHTML = '<div class="vip-crown">'+CROWN_SVG+'</div><div class="vip-txt"><b>Siz VIP a\'zosiz</b><small>VIP Tillo skin ochildi</small></div>';
+    } else {
+      vipBanner.className = 'vip-banner locked';
+      const canBuy = coins >= VIP_COST;
+      vipBanner.innerHTML = '<div class="vip-crown">'+CROWN_SVG+'</div><div class="vip-txt"><b>VIP bo\'lish</b><small>Rang-barang tillo skin oching</small></div><button class="vip-buy-btn" '+(canBuy?'':'disabled')+'>🪙 '+VIP_COST+'</button>';
+      vipBanner.querySelector('.vip-buy-btn').addEventListener('click', buyVip);
+    }
+  }
+
+  function renderShop(){
+    renderVipBanner();
+    tabBalls.classList.toggle('active', shopTab==='balls');
+    tabWalls.classList.toggle('active', shopTab==='walls');
+    skinGrid.innerHTML = '';
+
+    if(shopTab==='balls'){
+      Object.keys(BALL_SKINS).forEach(id=>{
+        const skin = BALL_SKINS[id];
+        if(skin.vip && !vipUnlocked) return;
+        const owned = ownedBallSkins.has(id);
+        const selected = selectedBallSkin === id;
+        const card = document.createElement('div');
+        card.className = 'skin-card' + (selected?' selected':'') + (skin.vip?' vip-card':'');
+        const ball = document.createElement('div');
+        ball.className = 'skin-ball' + (skin.animated?' skin-animated':'');
+        ball.style.background = skin.css;
+        if(!skin.vip) ball.style.border = 'none';
+        if(skin.vipLabel){ const lbl=document.createElement('span'); lbl.className='vip-label'; lbl.textContent='VIP'; ball.appendChild(lbl); }
+        if(skin.ring){ const ring=document.createElement('div'); ring.className='saturn-ring'; ball.appendChild(ring); }
+        const name = document.createElement('div'); name.className='sname'; name.textContent = skin.name;
+        const btn = document.createElement('button');
+        if(selected){ btn.className='sbtn selected'; btn.textContent='✓ Tanlangan'; btn.disabled=true; }
+        else if(owned){ btn.className='sbtn select'; btn.textContent='Tanlash'; btn.addEventListener('click', ()=>{ selectedBallSkin=id; applyBlueSkin(); saveProfile(); renderShop(); }); }
+        else { btn.className='sbtn buy'; btn.textContent='🪙 '+skin.price; btn.disabled = coins<skin.price;
+          btn.addEventListener('click', ()=>{ if(coins>=skin.price){ coins-=skin.price; ownedBallSkins.add(id); selectedBallSkin=id; applyBlueSkin(); updateCoinDisplays(); saveProfile(); renderShop(); } });
+        }
+        card.appendChild(ball); card.appendChild(name); card.appendChild(btn);
+        skinGrid.appendChild(card);
+      });
+    } else {
+      Object.keys(WALL_SKINS).forEach(id=>{
+        const skin = WALL_SKINS[id];
+        const owned = ownedWallSkins.has(id);
+        const selected = selectedWallSkin === id;
+        const card = document.createElement('div');
+        card.className = 'skin-card' + (selected?' selected':'');
+        const wall = document.createElement('div');
+        wall.className = 'skin-wall';
+        wall.style.background = skin.css;
+        const name = document.createElement('div'); name.className='sname'; name.textContent = skin.name;
+        const btn = document.createElement('button');
+        if(selected){ btn.className='sbtn selected'; btn.textContent='✓ Tanlangan'; btn.disabled=true; }
+        else if(owned){ btn.className='sbtn select'; btn.textContent='Tanlash'; btn.addEventListener('click', ()=>{ selectedWallSkin=id; saveProfile(); renderShop(); }); }
+        else { btn.className='sbtn buy'; btn.textContent='🪙 '+skin.price; btn.disabled = coins<skin.price;
+          btn.addEventListener('click', ()=>{ if(coins>=skin.price){ coins-=skin.price; ownedWallSkins.add(id); selectedWallSkin=id; updateCoinDisplays(); saveProfile(); renderShop(); } });
+        }
+        card.appendChild(wall); card.appendChild(name); card.appendChild(btn);
+        skinGrid.appendChild(card);
+      });
+    }
+  }
+
+  function initState(vsBot, difficulty, opponentName){
+    state = {
+      vsBot: vsBot,
+      difficulty: difficulty || 'medium',
+      opponentName: opponentName || null,
+      pos: { blue: {r:0, c:(C-1)>>1}, red: {r:R-1, c:(C-1)>>1} },
+      wallsLeft: { blue: START_WALLS, red: START_WALLS },
+      hWalls: new Set(), vWalls: new Set(), wallOwner: new Map(), cornerOwner: new Map(),
+      turn: 'blue', mode: 'move', gameOver: false, busy: false
+    };
+    if(opponentName){
+      redNameEl.innerHTML = escapeHtml(opponentName) + ' <span class="diff-badge online">Onlayn</span>';
+    } else if(vsBot){
+      const d = DIFF[state.difficulty];
+      redNameEl.innerHTML = 'Bot <span class="diff-badge ' + state.difficulty + '">' + d.label + '</span>';
+    } else {
+      redNameEl.textContent = "Do'st";
+    }
+  }
+
+  function escapeHtml(s){ return s.replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+  function canPass(r,c,nr,nc){
+    if(nr===r+1 && nc===c) return !state.hWalls.has(`${r},${c}`);
+    if(nr===r-1 && nc===c) return !state.hWalls.has(`${r-1},${c}`);
+    if(nr===r && nc===c+1) return !state.vWalls.has(`${r},${c}`);
+    if(nr===r && nc===c-1) return !state.vWalls.has(`${r},${c-1}`);
+    return false;
+  }
+  function neighbors(r,c){
+    const list = [];
+    [[r+1,c],[r-1,c],[r,c+1],[r,c-1]].forEach(([nr,nc])=>{
+      if(nr>=0 && nr<R && nc>=0 && nc<C && canPass(r,c,nr,nc)) list.push([nr,nc]);
+    });
+    return list;
+  }
+  function reachable(startR,startC,goalRow){
+    const seen = new Set([`${startR},${startC}`]); const q=[[startR,startC]];
+    while(q.length){ const [r,c]=q.shift(); if(r===goalRow) return true;
+      for(const [nr,nc] of neighbors(r,c)){ const k=`${nr},${nc}`; if(!seen.has(k)){ seen.add(k); q.push([nr,nc]); } } }
+    return false;
+  }
+  function bfsPath(startR,startC,goalRow,blockedR,blockedC){
+    const startKey = `${startR},${startC}`; const seen=new Set([startKey]); const parent=new Map(); const q=[[startR,startC]]; let goalNode=null;
+    while(q.length){ const [r,c]=q.shift(); if(r===goalRow){ goalNode=[r,c]; break; }
+      for(const [nr,nc] of neighbors(r,c)){ if(nr===blockedR && nc===blockedC) continue; const k=`${nr},${nc}`; if(!seen.has(k)){ seen.add(k); parent.set(k,[r,c]); q.push([nr,nc]); } } }
+    if(!goalNode) return null;
+    const path=[goalNode]; let curKey=`${goalNode[0]},${goalNode[1]}`;
+    while(curKey!==startKey){ const p=parent.get(curKey); path.push(p); curKey=`${p[0]},${p[1]}`; }
+    path.reverse(); return path;
+  }
+  function bfsDist(startR,startC,goalRow,blockedR,blockedC){ const p=bfsPath(startR,startC,goalRow,blockedR,blockedC); return p?p.length-1:Infinity; }
+  function bothPathsOk(){ return reachable(state.pos.blue.r,state.pos.blue.c,R-1) && reachable(state.pos.red.r,state.pos.red.c,0); }
+  function occupiedBy(r,c){ if(state.pos.blue.r===r&&state.pos.blue.c===c) return 'blue'; if(state.pos.red.r===r&&state.pos.red.c===c) return 'red'; return null; }
+  function switchTurn(){ state.turn = state.turn==='blue'?'red':'blue'; state.mode='move'; }
+
+  function checkWin(){
+    if(state.pos.blue.r === R-1){ endGame('blue'); return true; }
+    if(state.pos.red.r === 0){ endGame('red'); return true; }
+    return false;
+  }
+
+  function spawnConfetti(){
+    const colors = ['#3f7dff','#ff5a52','#ffc95c','#4be8b8','#8a4fff'];
+    for(let i=0;i<48;i++){
+      const el = document.createElement('div'); el.className='confetti';
+      el.style.left = Math.random()*100+'%'; el.style.background = colors[i%colors.length];
+      el.style.animation = `confettiFall ${0.9+Math.random()*0.9}s ease-in forwards`;
+      el.style.animationDelay = (Math.random()*0.4)+'s'; el.style.transform = `rotate(${Math.random()*360}deg)`;
+      overlay.appendChild(el); setTimeout(()=>el.remove(), 2200);
+    }
+  }
+
+  function opponentLabel(){
+    if(state.opponentName) return state.opponentName;
+    return state.vsBot ? 'Bot' : "Do'stingiz";
+  }
+
+  function endGame(winner){
+    state.gameOver = true;
+    const ballEl = winner==='blue' ? ballBlueEl : ballRedEl;
+    if(ballEl) ballEl.classList.add('win');
+    const winnerName = winner==='blue' ? "Siz" : opponentLabel();
+    overlayTitle.textContent = winnerName + " yutdi! 🎉";
+    overlaySub.textContent = "Qarama-qarshi chetga birinchi yetib bordi";
+    if(winner==='blue'){
+      coins += WIN_REWARD; totalWins += 1;
+      updateCoinDisplays(); saveProfile();
+      coinEarnedText.textContent = '+' + WIN_REWARD;
+      coinEarnedEl.classList.add('show');
+    } else {
+      coinEarnedEl.classList.remove('show');
+    }
+    overlay.classList.add('show');
+    spawnConfetti();
+  }
+
+  function surrender(){
+    if(state.gameOver || state.busy) return;
+    const winner = state.turn==='blue' ? 'red' : 'blue';
+    state.gameOver = true;
+    const winnerName = winner==='blue' ? "Siz" : opponentLabel();
+    overlayTitle.textContent = winnerName + " yutdi";
+    overlaySub.textContent = (state.turn==='blue' ? "Siz" : opponentLabel()) + " taslim bo'ldi";
+    coinEarnedEl.classList.remove('show');
+    overlay.classList.add('show');
+    spawnConfetti();
+  }
+
+  function buildGridDom(){
+    grid.innerHTML = '';
+    const colSizes=[]; for(let c=0;c<C;c++){ colSizes.push(CELL+'px'); if(c<C-1) colSizes.push(GAP+'px'); }
+    const rowSizes=[]; for(let r=0;r<R;r++){ rowSizes.push(CELL+'px'); if(r<R-1) rowSizes.push(GAP+'px'); }
+    grid.style.gridTemplateColumns = colSizes.join(' ');
+    grid.style.gridTemplateRows = rowSizes.join(' ');
+    const totalRows = rowSizes.length, totalCols = colSizes.length;
+
+    for(let gr=0; gr<totalRows; gr++){
+      for(let gc=0; gc<totalCols; gc++){
+        const rowIsCell = gr%2===0, colIsCell = gc%2===0;
+        const el = document.createElement('div');
+        el.style.gridRow = (gr+1); el.style.gridColumn = (gc+1);
+        if(rowIsCell && colIsCell){
+          const r=gr/2, c=gc/2; el.className='cell'; el.dataset.r=r; el.dataset.c=c;
+          if(r===R-1) el.classList.add('goal-blue'); if(r===0) el.classList.add('goal-red');
+          el.addEventListener('click', ()=>onCellClick(r,c));
+        } else if(!rowIsCell && colIsCell){
+          const r=(gr-1)/2, c=gc/2; el.className='gap h'; el.dataset.type='h'; el.dataset.r=r; el.dataset.c=c;
+          el.addEventListener('click', ()=>onGapClick('h',r,c,el));
+        } else if(rowIsCell && !colIsCell){
+          const r=gr/2, c=(gc-1)/2; el.className='gap v'; el.dataset.type='v'; el.dataset.r=r; el.dataset.c=c;
+          el.addEventListener('click', ()=>onGapClick('v',r,c,el));
+        } else { const r=(gr-1)/2, c=(gc-1)/2; el.className='corner'; el.dataset.r=r; el.dataset.c=c; }
+        grid.appendChild(el);
+      }
+    }
+    ballBlueEl = document.createElement('div'); ballBlueEl.className='ball blue';
+    ballRedEl = document.createElement('div'); ballRedEl.className='ball red';
+    const size = CELL*0.82;
+    [ballBlueEl, ballRedEl].forEach(b=>{ b.style.width=size+'px'; b.style.height=size+'px'; });
+    grid.appendChild(ballBlueEl); grid.appendChild(ballRedEl);
+    positionBall(ballBlueEl, state.pos.blue); positionBall(ballRedEl, state.pos.red);
+    applyBlueSkin();
+  }
+
+  function positionBall(el, pos){
+    const size = CELL*0.82;
+    el.style.left = (PAD + pos.c*(CELL+GAP) + (CELL-size)/2) + 'px';
+    el.style.top = (PAD + pos.r*(CELL+GAP) + (CELL-size)/2) + 'px';
+  }
+
+  function leaveFireTrail(el){
+    if(!el) return;
+    const trail = document.createElement('div');
+    trail.className = 'fire-trail';
+    trail.style.width = el.style.width;
+    trail.style.height = el.style.height;
+    trail.style.left = el.style.left;
+    trail.style.top = el.style.top;
+    grid.appendChild(trail);
+    setTimeout(()=>trail.remove(), 520);
+  }
+
+  function render(){
+    positionBall(ballBlueEl, state.pos.blue); positionBall(ballRedEl, state.pos.red);
+    ballBlueEl.classList.toggle('active-turn', state.turn==='blue' && !state.gameOver);
+    ballRedEl.classList.toggle('active-turn', state.turn==='red' && !state.gameOver);
+    grid.querySelectorAll('.cell').forEach(c=>c.classList.remove('highlight'));
+
+    const humanTurn = !(state.vsBot && state.turn==='red');
+    if(!state.gameOver && state.mode==='move' && humanTurn && !state.busy){
+      const p = state.pos[state.turn];
+      for(const [nr,nc] of neighbors(p.r,p.c)){
+        if(!occupiedBy(nr,nc)){ const sel = grid.querySelector(`.cell[data-r="${nr}"][data-c="${nc}"]`); if(sel) sel.classList.add('highlight'); }
+      }
+    }
+
+    grid.querySelectorAll('.gap').forEach(gapEl=>{
+      const type=gapEl.dataset.type, r=+gapEl.dataset.r, c=+gapEl.dataset.c;
+      gapEl.classList.remove('wallable');
+      const key = type+':'+r+','+c;
+      const owner = state.wallOwner.get(key);
+      if(owner){
+        if(!gapEl.classList.contains('walled')){
+          gapEl.classList.add('walled', owner);
+          if(owner==='blue'){ gapEl.style.background = WALL_SKINS[selectedWallSkin].css; }
+        }
+      } else if(!state.gameOver && state.mode==='wall' && humanTurn && !state.busy){
+        gapEl.classList.add('wallable');
+      }
+    });
+    grid.querySelectorAll('.corner').forEach(cEl=>{
+      const r=+cEl.dataset.r, c=+cEl.dataset.c;
+      const owner = state.cornerOwner.get(r+','+c);
+      if(owner && !cEl.classList.contains('walled')){
+        cEl.classList.add('walled', owner);
+        if(owner==='blue'){ cEl.style.background = WALL_SKINS[selectedWallSkin].css; }
+      }
+    });
+
+    pcardBlue.classList.toggle('active', state.turn==='blue' && !state.gameOver);
+    pcardRed.classList.toggle('active', state.turn==='red' && !state.gameOver);
+    wallsBlueEl.textContent = state.wallsLeft.blue; wallsRedEl.textContent = state.wallsLeft.red;
+
+    moveModeBtn.classList.toggle('on', state.mode==='move');
+    wallModeBtn.classList.toggle('on', state.mode==='wall');
+    const wallDisabled = state.wallsLeft[state.turn] <= 0 || !humanTurn || state.busy;
+    wallModeBtn.disabled = wallDisabled; moveModeBtn.disabled = !humanTurn || state.busy;
+    thinkingEl.classList.toggle('show', state.busy);
+    thinkingText.textContent = state.opponentName ? (state.opponentName + ' o\'ynayapti...') : "Bot o'ylayapti...";
+
+    if(state.gameOver){ hint.textContent = "O'yin tugadi. Qayta boshlash uchun pastdagi tugmani bosing."; }
+    else if(!humanTurn){ hint.textContent = opponentLabel() + " navbati..."; }
+    else if(state.mode==='move'){ hint.textContent = (state.turn==='blue'?"Sizning":opponentLabel()+"ning") + " navbati — yashil katakka bosib yuring."; }
+    else { hint.textContent = "Chiziqlar orasidagi bo'shliqqa bosib devor qo'ying."; }
+  }
+
+  function onCellClick(r,c){
+    if(state.gameOver || state.mode!=='move' || state.busy) return;
+    if(state.vsBot && state.turn==='red') return;
+    const p = state.pos[state.turn];
+    const isNeighbor = neighbors(p.r,p.c).some(([nr,nc])=>nr===r&&nc===c);
+    if(!isNeighbor || occupiedBy(r,c)) return;
+    state.pos[state.turn] = {r,c};
+    leaveFireTrail(state.turn==='blue' ? ballBlueEl : ballRedEl);
+    if(checkWin()){ render(); return; }
+    afterHumanAction();
+  }
+
+  function wallPartner(type, r, c){
+    if(type==='h'){
+      const pc = (c < C-1) ? c+1 : c-1;
+      return { r2:r, c2:pc, corner:{ r, c: Math.min(c,pc) } };
+    } else {
+      const pr = (r < R-1) ? r+1 : r-1;
+      return { r2:pr, c2:c, corner:{ r: Math.min(r,pr), c } };
+    }
+  }
+
+  function onGapClick(type, r, c, el){
+    if(state.gameOver || state.mode!=='wall' || state.busy) return;
+    if(state.vsBot && state.turn==='red') return;
+    if(state.wallsLeft[state.turn] <= 0) return;
+    const key = type+':'+r+','+c;
+    if(state.wallOwner.has(key)) return;
+    const partner = wallPartner(type, r, c);
+    const key2 = type+':'+partner.r2+','+partner.c2;
+    if(state.wallOwner.has(key2)){ el.style.background='rgba(255,90,82,0.55)'; setTimeout(render,220); return; }
+    const set = type==='h' ? state.hWalls : state.vWalls;
+    set.add(`${r},${c}`); set.add(`${partner.r2},${partner.c2}`);
+    if(!bothPathsOk()){
+      set.delete(`${r},${c}`); set.delete(`${partner.r2},${partner.c2}`);
+      el.style.background = 'rgba(255,90,82,0.55)'; setTimeout(render, 220); return;
+    }
+    state.wallOwner.set(key, state.turn);
+    state.wallOwner.set(key2, state.turn);
+    state.cornerOwner.set(partner.corner.r+','+partner.corner.c, state.turn);
+    state.wallsLeft[state.turn]--;
+    afterHumanAction();
+  }
+
+  function afterHumanAction(){
+    switchTurn(); render();
+    if(state.vsBot && state.turn==='red' && !state.gameOver){
+      state.busy = true; render(); setTimeout(botMove, 550);
+    }
+  }
+
+  function botMove(){
+    if(state.gameOver) return;
+    const cfg = DIFF[state.difficulty] || DIFF.medium;
+    const red = state.pos.red, blue = state.pos.blue;
+    const baseBlueDist = bfsDist(blue.r, blue.c, R-1, red.r, red.c);
+    let bestWall=null, bestGain=0;
+    if(state.wallsLeft.red > 0){
+      const candidates=[];
+      for(let r=0;r<R-1;r++) for(let c=0;c<C;c++){ const k=`${r},${c}`; if(!state.hWalls.has(k)) candidates.push({type:'h',r,c}); }
+      for(let r=0;r<R;r++) for(let c=0;c<C-1;c++){ const k=`${r},${c}`; if(!state.vWalls.has(k)) candidates.push({type:'v',r,c}); }
+      for(const cand of candidates){
+        const partner = wallPartner(cand.type, cand.r, cand.c);
+        const key2 = cand.type+':'+partner.r2+','+partner.c2;
+        if(state.wallOwner.has(key2)) continue;
+        const set = cand.type==='h'?state.hWalls:state.vWalls;
+        const key=`${cand.r},${cand.c}`, key2raw=`${partner.r2},${partner.c2}`;
+        set.add(key); set.add(key2raw);
+        if(bothPathsOk()){
+          const newBlueDist = bfsDist(blue.r,blue.c,R-1,red.r,red.c);
+          const newRedDist = bfsDist(red.r,red.c,0,blue.r,blue.c);
+          const gain = (newBlueDist-baseBlueDist) - newRedDist*cfg.selfPenalty;
+          if(gain > bestGain){ bestGain=gain; bestWall={...cand, partner}; }
+        }
+        set.delete(key); set.delete(key2raw);
+      }
+    }
+    const wantsWall = bestWall && bestGain >= cfg.gainThreshold && Math.random() < cfg.wallChance;
+    if(wantsWall){
+      const set = bestWall.type==='h'?state.hWalls:state.vWalls;
+      set.add(`${bestWall.r},${bestWall.c}`);
+      set.add(`${bestWall.partner.r2},${bestWall.partner.c2}`);
+      state.wallOwner.set(bestWall.type+':'+bestWall.r+','+bestWall.c, 'red');
+      state.wallOwner.set(bestWall.type+':'+bestWall.partner.r2+','+bestWall.partner.c2, 'red');
+      state.cornerOwner.set(bestWall.partner.corner.r+','+bestWall.partner.corner.c, 'red');
+      state.wallsLeft.red--;
+    } else {
+      let moved=false;
+      if(Math.random() < cfg.mistake){
+        const opts = neighbors(red.r,red.c).filter(([nr,nc])=>!occupiedBy(nr,nc));
+        if(opts.length){ const pick = opts[Math.floor(Math.random()*opts.length)]; leaveFireTrail(ballRedEl); state.pos.red={r:pick[0],c:pick[1]}; moved=true; }
+      }
+      if(!moved){
+        const path = bfsPath(red.r,red.c,0,blue.r,blue.c);
+        if(path && path.length>1){ leaveFireTrail(ballRedEl); state.pos.red = {r:path[1][0], c:path[1][1]}; }
+      }
+    }
+    state.busy = false;
+    if(checkWin()){ render(); return; }
+    switchTurn(); render();
+  }
+
+  // =========================================================
+  // 4-PLAYER LOCAL MODE (self-contained, square board, supports bots)
+  // =========================================================
+  const R4 = 9, C4 = 9, CELL4 = 28, GAP4 = 10, PAD4 = 6;
+  const WALLS4_START = 5;
+  const P4_COLORS = ['blue','red','green','yellow'];
+  const P4_NAMES = { blue:"Ko'k", red:'Qizil', green:'Yashil', yellow:'Sariq' };
+
+  const grid4p = document.getElementById('grid4');
+  const game4pScreen = document.getElementById('game4pScreen');
+  const setup4pScreen = document.getElementById('setup4pScreen');
+  const play4pBtn = document.getElementById('play4pBtn');
+  const menu4pBtn = document.getElementById('menu4pBtn');
+  const moveModeBtn4 = document.getElementById('moveModeBtn4');
+  const wallModeBtn4 = document.getElementById('wallModeBtn4');
+  const reset4pBtn = document.getElementById('reset4pBtn');
+  const hint4 = document.getElementById('hint4');
+  const thinking4 = document.getElementById('thinking4');
+  const thinking4Text = document.getElementById('thinking4Text');
+  const setup4pBackBtn = document.getElementById('setup4pBackBtn');
+  const bots0Btn = document.getElementById('bots0Btn');
+  const bots1Btn = document.getElementById('bots1Btn');
+  const bots2Btn = document.getElementById('bots2Btn');
+  const bots3Btn = document.getElementById('bots3Btn');
+
+  let state4p;
+  let balls4p = {};
+
+  function p4Goal(color, r, c){
+    if(color==='blue') return r===R4-1;
+    if(color==='red') return r===0;
+    if(color==='green') return c===C4-1;
+    if(color==='yellow') return c===0;
+  }
+
+  function init4pState(numBots){
+    const botSlots = ['red','green','yellow'].slice(0, numBots);
+    state4p = {
+      pos: {
+        blue: {r:0, c:(C4-1)>>1},
+        red: {r:R4-1, c:(C4-1)>>1},
+        green: {r:(R4-1)>>1, c:0},
+        yellow: {r:(R4-1)>>1, c:C4-1}
+      },
+      isBot: { blue:false, red:botSlots.includes('red'), green:botSlots.includes('green'), yellow:botSlots.includes('yellow') },
+      wallsLeft: {blue:WALLS4_START, red:WALLS4_START, green:WALLS4_START, yellow:WALLS4_START},
+      hWalls: new Set(), vWalls: new Set(), wallOwner: new Map(), cornerOwner: new Map(),
+      turnIdx: 0, mode: 'move', gameOver: false, busy: false
+    };
+  }
+  function p4Turn(){ return P4_COLORS[state4p.turnIdx]; }
+  function p4CanPass(r,c,nr,nc){
+    if(nr===r+1 && nc===c) return !state4p.hWalls.has(`${r},${c}`);
+    if(nr===r-1 && nc===c) return !state4p.hWalls.has(`${r-1},${c}`);
+    if(nr===r && nc===c+1) return !state4p.vWalls.has(`${r},${c}`);
+    if(nr===r && nc===c-1) return !state4p.vWalls.has(`${r},${c-1}`);
+    return false;
+  }
+  function p4Neighbors(r,c){
+    const list=[];
+    [[r+1,c],[r-1,c],[r,c+1],[r,c-1]].forEach(([nr,nc])=>{
+      if(nr>=0&&nr<R4&&nc>=0&&nc<C4&&p4CanPass(r,c,nr,nc)) list.push([nr,nc]);
+    });
+    return list;
+  }
+  function p4Occupied(r,c){
+    for(const color of P4_COLORS){ const p=state4p.pos[color]; if(p.r===r&&p.c===c) return color; }
+    return null;
+  }
+  function p4Reachable(color){
+    const start = state4p.pos[color];
+    const seen = new Set([`${start.r},${start.c}`]); const q=[[start.r,start.c]];
+    while(q.length){ const [r,c]=q.shift(); if(p4Goal(color,r,c)) return true;
+      for(const [nr,nc] of p4Neighbors(r,c)){ const k=`${nr},${nc}`; if(!seen.has(k)){ seen.add(k); q.push([nr,nc]); } } }
+    return false;
+  }
+  function p4AllPathsOk(){ return P4_COLORS.every(p4Reachable); }
+  function p4WallPartner(type,r,c){
+    if(type==='h'){ const pc=(c<C4-1)?c+1:c-1; return {r2:r,c2:pc,corner:{r,c:Math.min(c,pc)}}; }
+    return { r2:(r<R4-1)?r+1:r-1, c2:c, corner:{ r:Math.min(r,(r<R4-1)?r+1:r-1), c } };
+  }
+  function p4BfsDist(color, blockedCells){
+    const start=state4p.pos[color];
+    const blockedSet = new Set(blockedCells.map(p=>`${p.r},${p.c}`));
+    const seen=new Set([`${start.r},${start.c}`]); const q=[[start.r,start.c,0]];
+    while(q.length){ const [r,c,d]=q.shift(); if(p4Goal(color,r,c)) return d;
+      for(const [nr,nc] of p4Neighbors(r,c)){ const k=`${nr},${nc}`; if(!seen.has(k)&&!blockedSet.has(k)){ seen.add(k); q.push([nr,nc,d+1]); } } }
+    return Infinity;
+  }
+  function p4BfsPath(color, blockedCells){
+    const start=state4p.pos[color];
+    const blockedSet = new Set(blockedCells.map(p=>`${p.r},${p.c}`));
+    const startKey=`${start.r},${start.c}`;
+    const seen=new Set([startKey]); const parent=new Map(); const q=[[start.r,start.c]]; let goalNode=null;
+    while(q.length){ const [r,c]=q.shift(); if(p4Goal(color,r,c)){ goalNode=[r,c]; break; }
+      for(const [nr,nc] of p4Neighbors(r,c)){ const k=`${nr},${nc}`; if(!blockedSet.has(k) && !seen.has(k)){ seen.add(k); parent.set(k,[r,c]); q.push([nr,nc]); } } }
+    if(!goalNode) return null;
+    const path=[goalNode]; let curKey=`${goalNode[0]},${goalNode[1]}`;
+    while(curKey!==startKey){ const p=parent.get(curKey); path.push(p); curKey=`${p[0]},${p[1]}`; }
+    path.reverse(); return path;
+  }
+  function p4OtherPositions(excludeColor){ return P4_COLORS.filter(c=>c!==excludeColor).map(c=>state4p.pos[c]); }
+
+  function build4pGridDom(){
+    grid4p.innerHTML = '';
+    const colSizes=[]; for(let c=0;c<C4;c++){ colSizes.push(CELL4+'px'); if(c<C4-1) colSizes.push(GAP4+'px'); }
+    const rowSizes=[]; for(let r=0;r<R4;r++){ rowSizes.push(CELL4+'px'); if(r<R4-1) rowSizes.push(GAP4+'px'); }
+    grid4p.style.gridTemplateColumns = colSizes.join(' ');
+    grid4p.style.gridTemplateRows = rowSizes.join(' ');
+    const totalRows=rowSizes.length, totalCols=colSizes.length;
+    for(let gr=0; gr<totalRows; gr++){
+      for(let gc=0; gc<totalCols; gc++){
+        const rowIsCell=gr%2===0, colIsCell=gc%2===0;
+        const el=document.createElement('div');
+        el.style.gridRow=(gr+1); el.style.gridColumn=(gc+1);
+        if(rowIsCell&&colIsCell){
+          const r=gr/2,c=gc/2; el.className='cell'; el.dataset.r=r; el.dataset.c=c;
+          if(r===R4-1) el.classList.add('goal-blue');
+          if(r===0) el.classList.add('goal-red');
+          if(c===0) el.classList.add('goal-green');
+          if(c===C4-1) el.classList.add('goal-yellow');
+          el.addEventListener('click', ()=>onCell4pClick(r,c));
+        } else if(!rowIsCell&&colIsCell){
+          const r=(gr-1)/2,c=gc/2; el.className='gap h'; el.dataset.type='h'; el.dataset.r=r; el.dataset.c=c;
+          el.addEventListener('click', ()=>onGap4pClick('h',r,c,el));
+        } else if(rowIsCell&&!colIsCell){
+          const r=gr/2,c=(gc-1)/2; el.className='gap v'; el.dataset.type='v'; el.dataset.r=r; el.dataset.c=c;
+          el.addEventListener('click', ()=>onGap4pClick('v',r,c,el));
+        } else { const r=(gr-1)/2, c=(gc-1)/2; el.className='corner'; el.dataset.r=r; el.dataset.c=c; }
+        grid4p.appendChild(el);
+      }
+    }
+    balls4p = {};
+    P4_COLORS.forEach(color=>{
+      const b = document.createElement('div');
+      b.className = 'ball ' + color;
+      const size = CELL4*0.82;
+      b.style.width=size+'px'; b.style.height=size+'px';
+      grid4p.appendChild(b);
+      balls4p[color]=b;
+      position4pBall(b, state4p.pos[color]);
+    });
+  }
+  function position4pBall(el,pos){
+    const size=CELL4*0.82;
+    el.style.left=(PAD4+pos.c*(CELL4+GAP4)+(CELL4-size)/2)+'px';
+    el.style.top=(PAD4+pos.r*(CELL4+GAP4)+(CELL4-size)/2)+'px';
+  }
+  function leave4pTrail(el){
+    if(!el) return;
+    const trail=document.createElement('div');
+    trail.className='fire-trail';
+    trail.style.width=el.style.width; trail.style.height=el.style.height;
+    trail.style.left=el.style.left; trail.style.top=el.style.top;
+    grid4p.appendChild(trail);
+    setTimeout(()=>trail.remove(),520);
+  }
+
+  function render4p(){
+    P4_COLORS.forEach(color=>{
+      position4pBall(balls4p[color], state4p.pos[color]);
+      balls4p[color].classList.toggle('active-turn', color===p4Turn() && !state4p.gameOver);
+    });
+    grid4p.querySelectorAll('.cell').forEach(c=>c.classList.remove('highlight'));
+    const cur = p4Turn();
+    const humanTurn = !state4p.isBot[cur];
+    if(!state4p.gameOver && state4p.mode==='move' && humanTurn && !state4p.busy){
+      const p = state4p.pos[cur];
+      for(const [nr,nc] of p4Neighbors(p.r,p.c)){
+        if(!p4Occupied(nr,nc)){ const sel=grid4p.querySelector(`.cell[data-r="${nr}"][data-c="${nc}"]`); if(sel) sel.classList.add('highlight'); }
+      }
+    }
+    grid4p.querySelectorAll('.gap').forEach(gapEl=>{
+      const type=gapEl.dataset.type, r=+gapEl.dataset.r, c=+gapEl.dataset.c;
+      gapEl.classList.remove('wallable');
+      const key=type+':'+r+','+c;
+      const owner=state4p.wallOwner.get(key);
+      if(owner){
+        if(!gapEl.classList.contains('walled')){ gapEl.classList.add('walled', owner); }
+      } else if(!state4p.gameOver && state4p.mode==='wall' && humanTurn && !state4p.busy){
+        gapEl.classList.add('wallable');
+      }
+    });
+    grid4p.querySelectorAll('.corner').forEach(cEl=>{
+      const r=+cEl.dataset.r, c=+cEl.dataset.c;
+      const owner = state4p.cornerOwner.get(r+','+c);
+      if(owner && !cEl.classList.contains('walled')) cEl.classList.add('walled', owner);
+    });
+    P4_COLORS.forEach(color=>{
+      document.getElementById('pcard4-'+color).classList.toggle('active', color===cur && !state4p.gameOver);
+      document.getElementById('walls4-'+color).textContent = state4p.wallsLeft[color];
+    });
+    wallModeBtn4.disabled = state4p.gameOver || state4p.wallsLeft[cur]<=0 || !humanTurn || state4p.busy;
+    moveModeBtn4.disabled = !humanTurn || state4p.busy;
+    moveModeBtn4.classList.toggle('on', state4p.mode==='move');
+    wallModeBtn4.classList.toggle('on', state4p.mode==='wall');
+    thinking4.classList.toggle('show', state4p.busy);
+    thinking4Text.textContent = P4_NAMES[cur] + ' o\'ylayapti...';
+    if(state4p.gameOver) hint4.textContent = "O'yin tugadi. Qayta boshlash uchun pastdagi tugmani bosing.";
+    else if(!humanTurn) hint4.textContent = P4_NAMES[cur] + " (bot) navbati...";
+    else if(state4p.mode==='move') hint4.textContent = P4_NAMES[cur] + " navbati — yashil katakka bosib yuring.";
+    else hint4.textContent = P4_NAMES[cur] + " navbati — bo'shliqqa bosib devor qo'ying.";
+  }
+
+  function p4Switch(){ state4p.turnIdx = (state4p.turnIdx+1) % 4; state4p.mode='move'; }
+
+  function check4pWin(color){
+    const p = state4p.pos[color];
+    if(p4Goal(color,p.r,p.c)){
+      state4p.gameOver = true;
+      balls4p[color].classList.add('win');
+      overlayTitle.textContent = P4_NAMES[color] + " yutdi! 🎉";
+      overlaySub.textContent = "Qarama-qarshi chetga birinchi yetib bordi";
+      if(color==='blue'){ coins += WIN_REWARD; totalWins += 1; updateCoinDisplays(); saveProfile();
+        coinEarnedText.textContent='+'+WIN_REWARD; coinEarnedEl.classList.add('show');
+      } else { coinEarnedEl.classList.remove('show'); }
+      overlay.classList.add('show'); spawnConfetti();
+      return true;
+    }
+    return false;
+  }
+
+  function p4AfterAction(){
+    p4Switch(); render4p();
+    if(!state4p.gameOver && state4p.isBot[p4Turn()]){
+      state4p.busy = true; render4p();
+      setTimeout(bot4pMove, 500 + Math.random()*300);
+    }
+  }
+
+  function onCell4pClick(r,c){
+    if(state4p.gameOver || state4p.mode!=='move' || state4p.busy) return;
+    const cur = p4Turn(); if(state4p.isBot[cur]) return;
+    const p = state4p.pos[cur];
+    const isNeighbor = p4Neighbors(p.r,p.c).some(([nr,nc])=>nr===r&&nc===c);
+    if(!isNeighbor || p4Occupied(r,c)) return;
+    leave4pTrail(balls4p[cur]);
+    state4p.pos[cur] = {r,c};
+    if(check4pWin(cur)){ render4p(); return; }
+    p4AfterAction();
+  }
+  function onGap4pClick(type,r,c,el){
+    if(state4p.gameOver || state4p.mode!=='wall' || state4p.busy) return;
+    const cur = p4Turn(); if(state4p.isBot[cur]) return;
+    if(state4p.wallsLeft[cur]<=0) return;
+    const key=type+':'+r+','+c;
+    if(state4p.wallOwner.has(key)) return;
+    const partner = p4WallPartner(type,r,c);
+    const key2 = type+':'+partner.r2+','+partner.c2;
+    if(state4p.wallOwner.has(key2)){ el.style.background='rgba(255,90,82,0.55)'; setTimeout(render4p,220); return; }
+    const set = type==='h'?state4p.hWalls:state4p.vWalls;
+    set.add(`${r},${c}`); set.add(`${partner.r2},${partner.c2}`);
+    if(!p4AllPathsOk()){
+      set.delete(`${r},${c}`); set.delete(`${partner.r2},${partner.c2}`);
+      el.style.background='rgba(255,90,82,0.55)'; setTimeout(render4p,220); return;
+    }
+    state4p.wallOwner.set(key,cur);
+    state4p.wallOwner.set(key2,cur);
+    state4p.cornerOwner.set(partner.corner.r+','+partner.corner.c, cur);
+    state4p.wallsLeft[cur]--;
+    p4AfterAction();
+  }
+
+  function bot4pMove(){
+    if(state4p.gameOver) return;
+    const color = p4Turn();
+    const others = p4OtherPositions(color);
+    let bestWall=null, bestGain=0;
+    if(state4p.wallsLeft[color] > 0 && Math.random() < 0.35){
+      const baseDist = p4BfsDist('blue', p4OtherPositions('blue'));
+      const candidates=[];
+      for(let r=0;r<R4-1;r++) for(let c=0;c<C4;c++){ if(!state4p.hWalls.has(`${r},${c}`)) candidates.push({type:'h',r,c}); }
+      for(let r=0;r<R4;r++) for(let c=0;c<C4-1;c++){ if(!state4p.vWalls.has(`${r},${c}`)) candidates.push({type:'v',r,c}); }
+      for(let i=candidates.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [candidates[i],candidates[j]]=[candidates[j],candidates[i]]; }
+      for(const cand of candidates.slice(0,45)){
+        const partner = p4WallPartner(cand.type,cand.r,cand.c);
+        const key2 = cand.type+':'+partner.r2+','+partner.c2;
+        if(state4p.wallOwner.has(key2)) continue;
+        const set = cand.type==='h'?state4p.hWalls:state4p.vWalls;
+        set.add(`${cand.r},${cand.c}`); set.add(`${partner.r2},${partner.c2}`);
+        if(p4AllPathsOk()){
+          const newDist = p4BfsDist('blue', p4OtherPositions('blue'));
+          const gain = newDist - baseDist;
+          if(gain > bestGain){ bestGain=gain; bestWall={...cand, partner}; }
+        }
+        set.delete(`${cand.r},${cand.c}`); set.delete(`${partner.r2},${partner.c2}`);
+      }
+    }
+    if(bestWall && bestGain >= 1){
+      const set = bestWall.type==='h'?state4p.hWalls:state4p.vWalls;
+      set.add(`${bestWall.r},${bestWall.c}`); set.add(`${bestWall.partner.r2},${bestWall.partner.c2}`);
+      state4p.wallOwner.set(bestWall.type+':'+bestWall.r+','+bestWall.c, color);
+      state4p.wallOwner.set(bestWall.type+':'+bestWall.partner.r2+','+bestWall.partner.c2, color);
+      state4p.cornerOwner.set(bestWall.partner.corner.r+','+bestWall.partner.corner.c, color);
+      state4p.wallsLeft[color]--;
+    } else {
+      const path = p4BfsPath(color, others);
+      if(path && path.length>1){ leave4pTrail(balls4p[color]); state4p.pos[color] = {r:path[1][0], c:path[1][1]}; }
+    }
+    state4p.busy = false;
+    if(check4pWin(color)){ render4p(); return; }
+    p4Switch(); render4p();
+    if(!state4p.gameOver && state4p.isBot[p4Turn()]){
+      state4p.busy = true; render4p();
+      setTimeout(bot4pMove, 500 + Math.random()*300);
+    }
+  }
+
+  function new4pGame(numBots){
+    activeMode = '4p';
+    if(typeof numBots !== 'number') numBots = state4p ? P4_COLORS.filter(c=>state4p.isBot[c]).length : 0;
+    init4pState(numBots); build4pGridDom();
+    overlay.classList.remove('show'); overlay.querySelectorAll('.confetti').forEach(e=>e.remove());
+    show4pGame(); render4p();
+    if(state4p.isBot[p4Turn()]){
+      state4p.busy = true; render4p();
+      setTimeout(bot4pMove, 600);
+    }
+  }
+
+  function show4pSetup(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='none'; difficultyScreen.style.display='none';
+    shopScreen.style.display='none'; gameScreen.style.display='none'; game4pScreen.style.display='none';
+    setup4pScreen.style.display='flex';
+  }
+  function show4pGame(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='none'; difficultyScreen.style.display='none';
+    shopScreen.style.display='none'; gameScreen.style.display='none'; setup4pScreen.style.display='none';
+    game4pScreen.style.display='block';
+    updateCoinDisplays();
+  }
+
+  play4pBtn.addEventListener('click', show4pSetup);
+  setup4pBackBtn.addEventListener('click', showMenu);
+  bots0Btn.addEventListener('click', ()=> new4pGame(0));
+  bots1Btn.addEventListener('click', ()=> new4pGame(1));
+  bots2Btn.addEventListener('click', ()=> new4pGame(2));
+  bots3Btn.addEventListener('click', ()=> new4pGame(3));
+  menu4pBtn.addEventListener('click', ()=>{ game4pScreen.style.display='none'; showMenu(); });
+  moveModeBtn4.addEventListener('click', ()=>{ if(state4p.gameOver||state4p.busy) return; state4p.mode='move'; render4p(); });
+  wallModeBtn4.addEventListener('click', ()=>{ if(state4p.gameOver||state4p.busy||state4p.wallsLeft[p4Turn()]<=0) return; state4p.mode='wall'; render4p(); });
+  reset4pBtn.addEventListener('click', ()=> new4pGame());
+
+  function showMenu(){
+    menuScreen.style.display='flex'; matchScreen.style.display='none'; difficultyScreen.style.display='none';
+    shopScreen.style.display='none'; gameScreen.style.display='none'; game4pScreen.style.display='none';
+    overlay.classList.remove('show'); updateCoinDisplays();
+    if(matchTimer){ clearTimeout(matchTimer); matchTimer=null; }
+    startDailyTicker();
+  }
+  function showDifficulty(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='none'; difficultyScreen.style.display='flex';
+    shopScreen.style.display='none'; gameScreen.style.display='none'; game4pScreen.style.display='none';
+  }
+  function showShop(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='none'; difficultyScreen.style.display='none';
+    shopScreen.style.display='flex'; gameScreen.style.display='none'; game4pScreen.style.display='none';
+    updateCoinDisplays(); renderShop();
+  }
+  function showGame(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='none'; difficultyScreen.style.display='none';
+    shopScreen.style.display='none'; gameScreen.style.display='block'; game4pScreen.style.display='none';
+    updateCoinDisplays();
+  }
+  function showMatch(){
+    stopDailyTicker();
+    menuScreen.style.display='none'; matchScreen.style.display='flex'; difficultyScreen.style.display='none';
+    shopScreen.style.display='none'; gameScreen.style.display='none'; game4pScreen.style.display='none';
+  }
+
+  function startMatchmaking(){
+    showMatch();
+    const usernames = ['Alisher','Javlon','Sherzod','Kamron','Diyor','Bekzod','Nodira','Malika','Sardor','Aziz'];
+    const name = usernames[Math.floor(Math.random()*usernames.length)] + Math.floor(1000+Math.random()*9000);
+    const roll = Math.random();
+    const diff = roll < 0.25 ? 'easy' : (roll < 0.75 ? 'medium' : 'extreme');
+    matchTimer = setTimeout(()=>{
+      matchTimer = null;
+      newGame(true, diff, name);
+    }, 1600 + Math.random()*700);
+  }
+
+  function newGame(vsBot, difficulty, opponentName){
+    activeMode = '2p';
+    initState(vsBot, difficulty, opponentName);
+    buildGridDom();
+    overlay.classList.remove('show');
+    overlay.querySelectorAll('.confetti').forEach(e=>e.remove());
+    showGame(); render();
+  }
+
+  playOnlineBtn.addEventListener('click', startMatchmaking);
+  dailyCorner.addEventListener('click', claimDaily);
+  matchCancelBtn.addEventListener('click', ()=>{ if(matchTimer){ clearTimeout(matchTimer); matchTimer=null; } showMenu(); });
+  playFriendBtn.addEventListener('click', ()=> newGame(false));
+  playBotBtn.addEventListener('click', showDifficulty);
+  openShopBtn.addEventListener('click', showShop);
+  diffEasyBtn.addEventListener('click', ()=> newGame(true, 'easy'));
+  diffMediumBtn.addEventListener('click', ()=> newGame(true, 'medium'));
+  diffExtremeBtn.addEventListener('click', ()=> newGame(true, 'extreme'));
+  diffUltraBtn.addEventListener('click', ()=> newGame(true, 'ultra'));
+  diffBackBtn.addEventListener('click', showMenu);
+  shopBackBtn.addEventListener('click', showMenu);
+  tabBalls.addEventListener('click', ()=>{ shopTab='balls'; renderShop(); });
+  tabWalls.addEventListener('click', ()=>{ shopTab='walls'; renderShop(); });
+  menuBtn.addEventListener('click', showMenu);
+  overlayMenuBtn.addEventListener('click', showMenu);
+
+  moveModeBtn.addEventListener('click', ()=>{ if(state.gameOver||state.busy) return; state.mode='move'; render(); });
+  wallModeBtn.addEventListener('click', ()=>{ if(state.gameOver||state.busy||state.wallsLeft[state.turn]<=0) return; state.mode='wall'; render(); });
+  resetBtn.addEventListener('click', ()=> newGame(state.vsBot, state.difficulty, state.opponentName));
+  giveupBtn.addEventListener('click', surrender);
+  overlayBtn.addEventListener('click', ()=> {
+    if(activeMode==='4p'){ new4pGame(); } else { newGame(state.vsBot, state.difficulty, state.opponentName); }
+  });
+
+  // ---------- premium tap-sparkle effect on every interactive button ----------
+  const SPARKLE_COLORS = ['#ffe6a0','#7fb0ff','#4be8b8','#ff8078','#c9a0ff'];
+  function spawnSparkleBurst(x, y){
+    const n = 7;
+    for(let i=0;i<n;i++){
+      const p = document.createElement('div');
+      const angle = (Math.PI*2*i/n) + (Math.random()*0.5);
+      const dist = 22 + Math.random()*20;
+      const dx = Math.cos(angle)*dist, dy = Math.sin(angle)*dist;
+      p.style.cssText = 'position:fixed;left:'+x+'px;top:'+y+'px;width:6px;height:6px;border-radius:50%;'+
+        'background:'+SPARKLE_COLORS[i%SPARKLE_COLORS.length]+';z-index:999;pointer-events:none;'+
+        'box-shadow:0 0 6px '+SPARKLE_COLORS[i%SPARKLE_COLORS.length]+';'+
+        'transition:transform .5s cubic-bezier(.2,.8,.3,1), opacity .5s ease;transform:translate(0,0) scale(1);opacity:1;';
+      document.body.appendChild(p);
+      requestAnimationFrame(()=>{
+        p.style.transform = 'translate('+dx+'px,'+dy+'px) scale(0.2)';
+        p.style.opacity = '0';
+      });
+      setTimeout(()=>p.remove(), 550);
+    }
+  }
+  document.addEventListener('click', function(e){
+    const t = e.target.closest('.menu-btn, .btn, .pill-btn, .sbtn, .vip-buy-btn, .daily-corner, .shop-tab');
+    if(!t || t.disabled) return;
+    const r = t.getBoundingClientRect();
+    spawnSparkleBurst(r.left + r.width/2, r.top + r.height/2);
+  });
+
+  loadProfile();
+  showMenu();
+})();
+</script>
+</body>
+</html>
